@@ -4,27 +4,24 @@ http://jakarta.apache.org/ant/index.html
 -->
  
 <project name="budgetreport" default="all" basedir=".">
-  	<property name="version"  value="2.2"/>
   	<property name="src" value="."/>
-  	<property name="build" value="./build"/>
-  	<property name="build.compiler" value="modern" />
   	<property name="lib" value="../lib"/>
-  	<property name="privkeyfile" value="${src}/priv_key"/>
-  	<property name="pubkeyfile" value="${src}/pub_key"/>
-  	<property name="privkeyid" value="99"/>
-	<property name="build.compiler"  value="classic"/>
-	<property name="build.compiler.fulldepend"  value="true"/>
-	<property name="build.sysclasspath" value="ignore" /> 
 	<property name="dist"  value="../dist"/>
 	<property name="tmp"  value="../tmp"/>
+
+	<property name="build" value="${src}/build"/>
+	<property name="privkeyfile" value="${src}/priv_key"/>
+  	<property name="pubkeyfile" value="${src}/pub_key"/>
+  	<property name="privkeyid" value="99"/>
+	<property name="build.compiler" value="modern" />
+	<property name="build.compiler.fulldepend"  value="true"/>
+	<property name="build.sysclasspath" value="ignore" /> 
 	<property name="debug"  value="on"/>
 	<property name="optimize"  value="off"/>
-
 	<property name="javac.compatibility.source.version" value="17"/>
 	<property name="javac.compatibility.bytecode.version" value="17"/>
 	<property name="ant.build.javac.target" value="17"/>
 	<property name="ant.build.javac.source" value="17"/>
-
 
   	<path id="classpath">
 		<pathelement path="${lib}/extadmin.jar" />
@@ -36,7 +33,7 @@ http://jakarta.apache.org/ant/index.html
 		<mkdir dir="${build}" />
 	</target>
 
-	<target name="budgetreport" depends="init">
+	<target name="budgetreport" depends="init,cleanbudgetreport">
 		<javac srcdir="${src}" debug="${debug}" optimize="${optimize}" classpathref="classpath" destdir="${build}" failonerror="true" includes="com/moneydance/modules/features/budgetreport/**"/>
 
 		<jar destfile="${dist}/budgetreport.mxt">
@@ -55,8 +52,7 @@ http://jakarta.apache.org/ant/index.html
 			<arg value="budgetreport"/>
 			<arg line="${dist}/budgetreport.mxt"/>
 		</java>
-
-		<move file="${src}/s-budgetreport.mxt" tofile="${dist}/budgetreport.mxt"  verbose="false" failonerror="true" />
+		<move file="./s-budgetreport.mxt" tofile="${dist}/budgetreport.mxt"  verbose="false" failonerror="true" />
 	</target>
 
 	<target name="cleanbudgetreport">
@@ -75,6 +71,6 @@ http://jakarta.apache.org/ant/index.html
 		</java>
 	</target>
 
-  <target name="all" depends="init,budgetreport"/>
+	<target name="all" depends="init,budgetreport"/>
 
 </project>
