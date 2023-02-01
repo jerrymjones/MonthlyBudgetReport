@@ -26,5 +26,9 @@ hs_err_pid*
 priv_key
 pub_key
 
-# Ignore the built distribution files
-dist/*.mxt
+# Ignore the distribution files
+*.mxt
+
+# VS Code workspace and configuration files
+*.code-workspace
+settings.json

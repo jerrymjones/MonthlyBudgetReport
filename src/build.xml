@@ -36,7 +36,7 @@ http://jakarta.apache.org/ant/index.html
 		<mkdir dir="${build}" />
 	</target>
 
-	<target name="budgetreport" depends="init,cleanbudgetreport">
+	<target name="budgetreport" depends="init">
 		<javac srcdir="${src}" debug="${debug}" optimize="${optimize}" classpathref="classpath" destdir="${build}" failonerror="true" includes="com/moneydance/modules/features/budgetreport/**"/>
 
 		<jar destfile="${dist}/budgetreport.mxt">
@@ -67,7 +67,7 @@ http://jakarta.apache.org/ant/index.html
 		</delete>
 	</target>
 
-	<target name="genkeys">
+	<target name="genkeys" depends="init">
 		<java classpathref="classpath" classname="com.moneydance.admin.KeyAdmin">
 			<arg value="genkey" />
 			<arg value="${privkeyfile}" />
