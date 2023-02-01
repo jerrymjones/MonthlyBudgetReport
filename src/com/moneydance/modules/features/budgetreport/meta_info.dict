@@ -1,0 +1,10 @@
+{
+  "id" = "monthlybudgetreport"
+  "extension_type" = "java"
+  "vendor" = "Jerry Jones"
+  "vendor_url" = "TBD"
+  "module_build" = "1"
+  "minbuild" = "1706"
+  "module_name" = "Monthly Budget Report"
+  "module_desc" = "Provides the ability to report on spending vs. expenses for monthly budgets. This report allows negative budget amounts unlike the standard Moneydance report.\n"
+}
