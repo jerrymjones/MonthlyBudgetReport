@@ -31,6 +31,7 @@ http://jakarta.apache.org/ant/index.html
 	<target name="init">
 		<mkdir dir="${dist}" />
 		<mkdir dir="${build}" />
+		<mkdir dir="${lib}" />
 	</target>
 
 	<target name="budgetreport" depends="init,cleanbudgetreport">
