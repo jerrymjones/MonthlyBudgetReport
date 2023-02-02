@@ -5,7 +5,7 @@ For help using this extension see the [Wiki](https://github.com/jerrymjones/Mont
 
 Monthly Budget Report is an extension for the [Moneydance](https://moneydance.com/)
 Personal Finance app to help you report how well you are meeting your monthly spending 
-goals. The main reason to us this extension instead of the built in Moneydance 
+goals. The main reason to use this extension instead of the built in Moneydance 
 budget report is that this extension properly handles negative budget amounts.
 I see a budget as being fluid throughout the year. Budget amounts always need
 to be updated throughout the year as spending changes and I like to be able to 
@@ -49,7 +49,7 @@ git clone https://github.com/jerrymjones/MonthlyBudgetReport.git <localfolder>
 ant init
 ```
 
-3. Download the [Moneydance Developer's Kit](https://infinitekind.com/dev/moneydance-devkit-5.1.tar.gz) and extract it
+3. Download the Moneydance [Developer's Kit](https://infinitekind.com/dev/moneydance-devkit-5.1.tar.gz) and extract it
    to a local folder on your system. Once extracted, copy-paste `lib/extadmin.jar` and `lib/moneydance-dev.jar` into the `<localfolder>/lib` folder:
 
 ```shell
@@ -71,3 +71,5 @@ ant genkeys
 ```shell
 ant budgetreport
 ```
+
+6. Install the extension per the installation instructions [above](#installation) using `<localfolder>/dist/budgetreport.mxt` as the file to load.
