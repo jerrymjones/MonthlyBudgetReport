@@ -2023,21 +2023,21 @@ public class BudgetReportWindow extends JFrame
     helpText.append("<html>");
     helpText.append("<center><b>Monthly Budget Report</b></center><br>");
     helpText.append("After using Quicken for more than 30 years, I began looking at alternatives, particularly ones I could run on Linux. I started looking at Moneydance a few years ago but it had some limitations ");
-    helpText.append("and I just couldn't make the change. After Moneydance+ came out along with many other improvements I decided it was time. Everyting was good execpt the ability to easily enter yearly ");
+    helpText.append("and I just couldn't make the change. After Moneydance+ came out along with many other improvements I decided it was time. Everything was good except the ability to easily enter yearly ");
     helpText.append("budgets using a spreadsheet format similar to what I was used to. Being a longtime software developer but without Java skills I started learning Java and the Moneydance API in late November ");
-    helpText.append("2022. I developed Monthly Budget Editor to solve that problem and now Monthly Budget Report to resolve issues with negative budget abmounts - more about that later.<br>");
+    helpText.append("2022. I developed Monthly Budget Editor to solve that problem and now Monthly Budget Report to resolve issues with negative budget amounts - more about that later.<br>");
 
     helpText.append("<br><b>Let me bring up what some may find as limitations to this extension as well. These include the following:</b><br><ul>");
     helpText.append("<li>Only monthly budgets can be used with this extension. At present, only calendar year budgets are supported. If there is enough interest I may consider adding fiscal year support but that will complicate the code quite a bit.</li>");
     helpText.append("<li>Mixed currencies are also not supported and in fact I have only tested this using US dollars. It should work with other currencies but when problems are found, feedback will be appreciated.</li>");
     helpText.append("<li>I originally planned to have a screen to select the categories to budget and report on but I found I really didn't need one. If you don't want to enter budget data for a category just leave the amounts set to 0. Categories that are hidden or inactive will not be presented.</li>");
-    helpText.append("<li>Catgories with children are assumed to be roll-up categories and they cannot be edited. In the reports you can select whether or not to show the totals.</li>");
+    helpText.append("<li>Categories with children are assumed to be roll-up categories and they cannot be edited. In the reports you can select whether or not to show the totals.</li>");
     helpText.append("</ul>");
 
     helpText.append("<br><b>Using the extension</b><br><ol>");
     helpText.append("<li>Set up the Categories as you want them. Making categories you don't want to budget inactive will hide them from the Monthly Budget Report as well as in reports, etc. across Moneydance.</li>");
     helpText.append("<li>If necessary, create a new budget in 'Tools:Budget Manager' and set the Period to Monthly</li>");
-    helpText.append("<li>Use my Monthly Budget Editor extension to crreate your monthly budget (Of course any monthly budget created another way will work too.</li>");
+    helpText.append("<li>Use my Monthly Budget Editor extension to create your monthly budget (Of course any monthly budget created another way will work too.</li>");
     helpText.append("<li>Create and memorize a default report.</li><br>");
     helpText.append("</ol>");
     helpText.append("<b>One warning: </b>The Monthly Budget Editor and in fact even the built in Moneydance Budget Editor will allow you to enter negative values for budget entries. I personally think this makes sense in some situations such as when you get a ");
@@ -2046,7 +2046,7 @@ public class BudgetReportWindow extends JFrame
 
     helpText.append("<br><b>Acknowledgements:</b><br><ol>");
     helpText.append("<li>I want to thank Michael Bray who wrote an extension called Budget Generator and made the source code available online. While Monthly Budget Report was written with a bit different approach, his code helped tremendously in understanding the Moneydance API.</li>");
-    helpText.append("<li>I also want to thank Shannon Hickey for the TablePrintable code that adds additional header and footer capibilities to printed reports.</li>");
+    helpText.append("<li>I also want to thank Shannon Hickey for the TablePrintable code that adds additional header and footer capabilities to printed reports.</li>");
     helpText.append("</ol>");
        
     helpText.append("<br>The developer of this extension makes every effort to ensure it functions as described above and is free from serious defects but we make no representation or warranty, express or implied as to its suitability for any purpose. Your use of the extension is solely at your own risk.");
