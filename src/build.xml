@@ -9,7 +9,7 @@ http://jakarta.apache.org/ant/index.html
 	<property name="dist"  value="../dist"/>
 	<property name="tmp"  value="../tmp"/>
 
-	<property name="build" value="${src}/build"/>
+	<property name="build" value="./build"/>
 	<property name="privkeyfile" value="${src}/priv_key"/>
   	<property name="pubkeyfile" value="${src}/pub_key"/>
   	<property name="privkeyid" value="99"/>
@@ -52,7 +52,7 @@ http://jakarta.apache.org/ant/index.html
 			<arg value="budgetreport"/>
 			<arg line="${dist}/budgetreport.mxt"/>
 		</java>
-		<move file="./s-budgetreport.mxt" tofile="${dist}/budgetreport.mxt"  verbose="false" failonerror="true" />
+		<move file="${src}/s-budgetreport.mxt" tofile="${dist}/budgetreport.mxt"  verbose="false" failonerror="true" />
 	</target>
 
 	<target name="cleanbudgetreport">
@@ -64,13 +64,13 @@ http://jakarta.apache.org/ant/index.html
 	</target>
 
 	<target name="genkeys" depends="init">
-		<java classpathref="classpath" classname="com.moneydance.admin.KeyAdmin">
+		<java fork="true" newenvironment="true" classpathref="classpath" classname="com.moneydance.admin.KeyAdmin">
 			<arg value="genkey" />
 			<arg value="${privkeyfile}" />
 			<arg value="${pubkeyfile}" />
 		</java>
 	</target>
 
-	<target name="all" depends="init,budgetreport"/>
+	<target name="all" depends="init,cleanbudgetreport,budgetreport"/>
 
 </project>
