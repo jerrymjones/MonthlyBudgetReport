@@ -97,7 +97,7 @@ public class Table extends JTable {
 	 * Prepare the renderer for the cell at the specified row and column.
 	 * 
 	 * @param renderer - The table cell renderer object.
-	 * @param row - The row to reppare.
+	 * @param row - The row to report.
 	 * @param column - The column to prepare.
 	 * @return Component - The component being rendered.
 	 */
@@ -132,7 +132,7 @@ public class Table extends JTable {
 
 		// Set text color of totals. Other than the category name in column 0, any other 
 		// cell could potentially be a total so we color it specially.
-		if  (this.model.getBugetCategoryItem(row).getHasChildren())
+		if  (this.model.getBudgetCategoryItem(row).getHasChildren())
 			{
 			if (row == 0)
 				c.setForeground(new Color(33, 144, 255));	// Income-Expense row - Medium blue

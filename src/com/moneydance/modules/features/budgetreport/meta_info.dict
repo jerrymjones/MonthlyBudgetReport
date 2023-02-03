@@ -2,9 +2,10 @@
   "id" = "monthlybudgetreport"
   "extension_type" = "java"
   "vendor" = "Jerry Jones"
-  "vendor_url" = "TBD"
-  "module_build" = "1"
+  "vendor_url" = "https://github.com/jerrymjones/MonthlyBudgetReport/wiki"
+  "module_build" = "2201"
   "minbuild" = "1706"
   "module_name" = "Monthly Budget Report"
-  "module_desc" = "Provides the ability to report on spending vs. expenses for monthly budgets. This report allows negative budget amounts unlike the standard Moneydance report.\n"
+  "module_desc" = "<html><body><title>Monthly Budget Report</title><p>Provides the ability to report on spending vs. expenses for monthly budgets. This report allows negative budget amounts unlike the standard Moneydance report.</p></body></html>"
+  "desc" = "Provides the ability to report on spending vs. expenses for monthly budgets. This report allows negative budget amounts unlike the standard Moneydance report."
 }

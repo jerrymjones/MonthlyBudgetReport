@@ -183,7 +183,7 @@ public class TableModel extends AbstractTableModel  {
      * @param row - The row from the table which is the index into the category items.
      * @return BudgetCategoryItem - The selected BudgetCategoryItem or null if there isn't one.
      */
-    public BudgetCategoryItem getBugetCategoryItem(final int row) {
+    public BudgetCategoryItem getBudgetCategoryItem(final int row) {
         return this.budgetCategoriesList.getCategoryItemByIndex(row);
     }
 
@@ -224,7 +224,7 @@ public class TableModel extends AbstractTableModel  {
         else if (currentReport.getSubtotalBy() == Constants.SUBTOTAL_MONTH)
             return ((((currentReport.getEndMonth() + 1) - currentReport.getStartMonth()) * 3) + 1 + 3); // The last + 3 adds the grand totals
         else
-            return 0; // Invalid subtital selection (Shouldn't get here)
+            return 0; // Invalid subtotal selection (Shouldn't get here)
     }
 
     

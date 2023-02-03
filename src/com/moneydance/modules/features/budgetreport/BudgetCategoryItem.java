@@ -123,7 +123,7 @@ final class BudgetCategoryItem {
         // Save the Category type
         this.categoryType = type;
 
-        // Special accounts always have childrent
+        // Special accounts always have children
         this.hasChildren = true;
 
         // The parent category this ine rolls up to

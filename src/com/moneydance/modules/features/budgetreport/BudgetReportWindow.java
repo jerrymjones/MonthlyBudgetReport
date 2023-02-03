@@ -34,6 +34,7 @@ import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
@@ -58,6 +59,8 @@ import java.io.IOException;
 import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -86,7 +89,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
@@ -264,7 +266,7 @@ public class BudgetReportWindow extends JFrame
       this.reportSelector.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(final ActionEvent e) {
-          // Load the report unless the selecter is set to "<Unsaved Report>"
+          // Load the report unless the selector is set to "<Unsaved Report>"
           if (!BudgetReportWindow.this.reportSelector.getSelectedItem().toString().equals(Constants.UNSAVED_REPORT))
             {
             // Load the selected report
@@ -335,7 +337,7 @@ public class BudgetReportWindow extends JFrame
       ** Memorize Button
       */
       final JButton memorizeButton = new JButton("Memorize");
-      memorizeButton.setToolTipText("Memrize the current report");
+      memorizeButton.setToolTipText("Memorize the current report");
       this.topRtPanel.add(memorizeButton,GridC.getc(2,0).insets(10,5,10,5));
 
       // Create an action listener to dispatch the action when this button is clicked
@@ -500,7 +502,7 @@ public class BudgetReportWindow extends JFrame
    * This method returns the key value for the specified key
    *  
    * @param key - The key value to return
-   * @return String - The value of the property specified bythe key or null if the 
+   * @return String - The value of the property specified by the key or null if the 
    * key value is not found.
    */
   public String getProperty(final String key) {
@@ -854,7 +856,7 @@ public class BudgetReportWindow extends JFrame
     dialog.setResizable(false);
     dialog.setLayout(new GridBagLayout());
     
-    // Do not allow close if  not allowing calcel
+    // Do not allow close if not allowing the user to cancel
     if (!allowCancel)
       dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     else
@@ -1224,7 +1226,7 @@ public class BudgetReportWindow extends JFrame
 
     // Set the size of the table so the entire table will print
     // printTable.setSize(printTable.getPreferredSize()); results in several of
-    // the right most columns not dsplaying.
+    // the right most columns not displaying.
     printTable.setSize(4000, 8000);
 
     // Get the table header object
@@ -1249,7 +1251,7 @@ public class BudgetReportWindow extends JFrame
     // Print via a custom printable method so we can generate proper headers/footers
     job.setPrintable(new MyTablePrintable(printTable, JTable.PrintMode.NORMAL, header, footer));
     // job.setPrintable(new MyTablePrintable(printTable, JTable.PrintMode.FIT_WIDTH, header, footer));
-    
+
     // Print the report
     if (job.printDialog(attr)) 
       {
@@ -1439,7 +1441,7 @@ public class BudgetReportWindow extends JFrame
    * 
    * @param reportName - The name of the report which will also be the file name
    * @param setDefault - true when this report should be set as the default report
-   * @return boolean - true if successful, false otherwise - filename is invald
+   * @return boolean - true if successful, false otherwise - filename is invalid
    */
    private boolean memorizeReport(final String reportName, final boolean setDefault) { 
     // Get the file path to store this report to
@@ -1555,7 +1557,7 @@ public class BudgetReportWindow extends JFrame
 	 * 
 	 * @param menu - The pop-up menu to add the item to.
 	 * @param identifier - The identifier that will be used to determine what item was selected.
-	 * @param text - The textof the pop-up menu item.
+	 * @param text - The text of the pop-up menu item.
 	 * @param tooltip - A tooltip for the menu item or null if none is desired.
 	 * @param listener - The action listener for this item.
 	 * @return JMenuItem - Returns the new menu item object.
@@ -1979,7 +1981,7 @@ public class BudgetReportWindow extends JFrame
     this.addPopupMenuItem(popMenu, "menuItemSaveHTML", "Save as HTML", this.popListener);
     
     // Show the menu under the button
-    //popMenu.show(c, 0, c.getHeight() + 4); // Works but menu starts at left edge of buttob. Can't use negative x values.
+    //popMenu.show(c, 0, c.getHeight() + 4); // Works but menu starts at left edge of button. Can't use negative x values.
     popMenu.show(this, this.frameWidth + 10 - (int)popMenu.getPreferredSize().getWidth(), 4 + this.getInsets().top + c.getY() + c.getHeight());
   }
 
@@ -1989,79 +1991,57 @@ public class BudgetReportWindow extends JFrame
    */
   private void showHelp() 
   {
-    // Calculate the size of the help frame
-    final int width = ( this.frameWidth * 70 ) / 100;
-    final int height = ( this.frameHeight * 75 ) / 100;
-
-    // Create a frame to contain everything
-    final JFrame frame = new JFrame ("Help");
-    frame.setSize(width, height);
-    frame.setResizable(false);
-    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-    // Center the frame on the screen
-    AwtUtil.centerWindow(frame);
-    
-    // Text pane to hold the help text
-    final JTextPane tp = new JTextPane();
-    tp.setSize(width -30, height - 30);    
-    tp.setEditable(false);
-    tp.setVisible(true);
-    
-    // Create a scrollable pane and add the text pane to it
-    final JScrollPane scroll = new JScrollPane (tp);
-    scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-      
-    // Add the scroll pane to the frame then make everything visible
-    frame.add(scroll);
-    frame.setVisible(true);
-    
-    // Create the help text
-    final StringBuilder helpText = new StringBuilder();
-
-    helpText.append("<html>");
-    helpText.append("<center><b>Monthly Budget Report</b></center><br>");
-    helpText.append("After using Quicken for more than 30 years, I began looking at alternatives, particularly ones I could run on Linux. I started looking at Moneydance a few years ago but it had some limitations ");
-    helpText.append("and I just couldn't make the change. After Moneydance+ came out along with many other improvements I decided it was time. Everything was good except the ability to easily enter yearly ");
-    helpText.append("budgets using a spreadsheet format similar to what I was used to. Being a longtime software developer but without Java skills I started learning Java and the Moneydance API in late November ");
-    helpText.append("2022. I developed Monthly Budget Editor to solve that problem and now Monthly Budget Report to resolve issues with negative budget amounts - more about that later.<br>");
-
-    helpText.append("<br><b>Let me bring up what some may find as limitations to this extension as well. These include the following:</b><br><ul>");
-    helpText.append("<li>Only monthly budgets can be used with this extension. At present, only calendar year budgets are supported. If there is enough interest I may consider adding fiscal year support but that will complicate the code quite a bit.</li>");
-    helpText.append("<li>Mixed currencies are also not supported and in fact I have only tested this using US dollars. It should work with other currencies but when problems are found, feedback will be appreciated.</li>");
-    helpText.append("<li>I originally planned to have a screen to select the categories to budget and report on but I found I really didn't need one. If you don't want to enter budget data for a category just leave the amounts set to 0. Categories that are hidden or inactive will not be presented.</li>");
-    helpText.append("<li>Categories with children are assumed to be roll-up categories and they cannot be edited. In the reports you can select whether or not to show the totals.</li>");
-    helpText.append("</ul>");
-
-    helpText.append("<br><b>Using the extension</b><br><ol>");
-    helpText.append("<li>Set up the Categories as you want them. Making categories you don't want to budget inactive will hide them from the Monthly Budget Report as well as in reports, etc. across Moneydance.</li>");
-    helpText.append("<li>If necessary, create a new budget in 'Tools:Budget Manager' and set the Period to Monthly</li>");
-    helpText.append("<li>Use my Monthly Budget Editor extension to create your monthly budget (Of course any monthly budget created another way will work too.</li>");
-    helpText.append("<li>Create and memorize a default report.</li><br>");
-    helpText.append("</ol>");
-    helpText.append("<b>One warning: </b>The Monthly Budget Editor and in fact even the built in Moneydance Budget Editor will allow you to enter negative values for budget entries. I personally think this makes sense in some situations such as when you get a ");
-    helpText.append("refund or a reimbursement for an expense earlier in the year. Unfortunately if you leave these negative values in the budget, the Moneydance budget report and the budget bars will treat these negative budget values as ");
-    helpText.append("positive values and your budget totals in those items will be too high. If, like me, you think this is wrong then please let the Moneydance team know! This extension will handle negative budget values correctly.<p>");
-
-    helpText.append("<br><b>Acknowledgements:</b><br><ol>");
-    helpText.append("<li>I want to thank Michael Bray who wrote an extension called Budget Generator and made the source code available online. While Monthly Budget Report was written with a bit different approach, his code helped tremendously in understanding the Moneydance API.</li>");
-    helpText.append("<li>I also want to thank Shannon Hickey for the TablePrintable code that adds additional header and footer capabilities to printed reports.</li>");
-    helpText.append("</ol>");
-       
-    helpText.append("<br>The developer of this extension makes every effort to ensure it functions as described above and is free from serious defects but we make no representation or warranty, express or implied as to its suitability for any purpose. Your use of the extension is solely at your own risk.");
-
-    helpText.append("</html>");
-
-    // Set the help text
-    tp.setContentType("text/html");
-    tp.setText(helpText.toString());
-
-    // Scroll to the top of the text
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      public void run() { 
-        scroll.getVerticalScrollBar().setValue(0);
+    String url = "https://github.com/jerrymjones/MonthlyBudgetReport/wiki";
+    String myOS = System.getProperty("os.name").toLowerCase();
+    try 
+      {
+      if (myOS.contains("windows"))
+        { // Windows
+        if (Desktop.isDesktopSupported())
+          {
+          Desktop desktop = Desktop.getDesktop();
+          desktop.browse(new URI(url));
+          }
+        else
+          this.showHelpFailed(url); // Copy URL to clipboard
+        } 
+      else 
+        { // Not-windows
+          Runtime runtime = Runtime.getRuntime();
+          if (myOS.contains("mac")) // Apple
+            runtime.exec("open " + url);
+          else if (myOS.contains("nix") || myOS.contains("nux")) // Linux
+            runtime.exec("xdg-open " + url);
+          else 
+            this.showHelpFailed(url); // Copy URL to clipboard
+        }
       }
-    });
+    catch(IOException | URISyntaxException e) 
+      {
+        this.showHelpFailed(url); // Copy URL to clipboard
+      }
+  }
+
+  /**
+   * This method is called when we could not open a browser window to show help.
+   * We'll tell the user and copy the URL to the clipboard so it can be manually
+   * opened.
+   */
+  private void showHelpFailed(String url)
+  {
+    // Create a transferrable of the url to copy to the clipboard
+    final StringSelection sel  = new StringSelection(url); 
+  
+    // Get an instance of the system clipboard
+    final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard(); 
+
+    // Copy the url to the clipboard
+    clipboard.setContents(sel, sel); 
+
+    // Now tell the user what happened
+    JOptionPane.showMessageDialog(this,
+    "I could not open the help URL on this system. The URL was copied to the clipboard for you to manually open it.",
+    "Browser Open Failed",
+    JOptionPane.INFORMATION_MESSAGE);
   }
 }

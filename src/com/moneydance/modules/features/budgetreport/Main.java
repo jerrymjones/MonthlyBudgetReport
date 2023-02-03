@@ -24,7 +24,7 @@ public class Main extends FeatureModule {
     }
   }
 
-  /** Process an invokation of this module with the given URI */
+  /** Process an invocation of this module with the given URI */
   public void invoke(final String uri) {
     String command = uri;
     int theIdx = uri.indexOf('?');

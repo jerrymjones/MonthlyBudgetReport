@@ -91,7 +91,7 @@ public class BudgetCategoriesList {
     /** 
      * Add a special category to the list - Totals, Income or Expense for example.
      * 
-     * <p><b>Note:</b> Special categoties always have children.
+     * <p><b>Note:</b> Special categories always have children.
      * 
      * @param name - The name of the special category to add.
      * @param type - The type of this category: Account.AccountType.ROOT (Totals),
@@ -320,7 +320,7 @@ public class BudgetCategoriesList {
                 // Set the current parent index to the index of this category when it is added
                 this.currentParentIndex = BudgetCategoriesList.this.lhm.size();
 
-                // Set the chidlrens indent level 
+                // Set the children's indent level 
                 this.currentChildLevel = indentLevel + 1;
                 }
 
