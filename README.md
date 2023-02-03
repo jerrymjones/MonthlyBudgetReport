@@ -9,8 +9,8 @@ goals. The main reason to use this extension instead of the built in Moneydance
 budget report is that this extension properly handles negative budget amounts.
 I see a budget as being fluid throughout the year. Budget amounts always need
 to be updated throughout the year as spending changes and I like to be able to 
-borrow from categories I'm underspending while allocating the extra to categories
-that are becoming overspent. There may be special occasions, such as when someone
+borrow from categories I'm under spending while allocating the extra to categories
+that are becoming overspent. There may also be special occasions, such as when someone
 refunds part of the money spent earlier in the year that you may need to enter a 
 negative budget amount so that the budget accurately reflects the changes. An
 example would be for car insurance. At times our insurer may issue a refund of
