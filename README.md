@@ -1,5 +1,4 @@
-# MonthlyBudgetReport
-MoneyDance Monthly Budget Report
+# MoneyDance Monthly Budget Report
 
 For help using this extension see the [Wiki](https://github.com/jerrymjones/MonthlyBudgetReport/wiki).
 
