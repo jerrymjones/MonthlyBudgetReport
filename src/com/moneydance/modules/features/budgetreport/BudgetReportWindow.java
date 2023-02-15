@@ -45,6 +45,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -69,7 +71,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.DefaultComboBoxModel;
@@ -92,11 +94,13 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import com.infinitekind.moneydance.model.Account;
 import com.infinitekind.moneydance.model.Budget;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
 import com.moneydance.apps.md.view.gui.MDColors;
@@ -110,7 +114,7 @@ import com.moneydance.awt.GridC;
 *
 * @author  Jerry Jones
 */
-public class BudgetReportWindow extends JFrame
+public class BudgetReportWindow extends JFrame implements ComponentListener
 {
   // Display Constants
   private static final int TOP_HEIGHT = 150;
@@ -132,7 +136,7 @@ public class BudgetReportWindow extends JFrame
   private JComboBox<String> budgetSelector;
 
   // List of available monthly budgets that can be edited
-  private BudgetList budgetList;
+  private MyBudgetList budgetList;
   
   // Budget map
   private final Map<String,Budget> mapBudgets = new HashMap<String,Budget>();
@@ -141,14 +145,11 @@ public class BudgetReportWindow extends JFrame
   private Table table;
   private TableModel tableModel = null;
 
-  // Height and width of the table viewport
-  int viewportWidth;
-  int viewportHeight;
-
   // Panels used to display information
   private JPanel topLtPanel;
   private JPanel topCtrPanel;
   private JPanel topRtPanel;
+  private JPanel reportPanel;
 
   // Clickable User Guide link
   private JLabel helpLink;
@@ -188,7 +189,7 @@ public class BudgetReportWindow extends JFrame
     this.context = extension.getUnprotectedContext();
 
     // Get the list of available budgets
-    this.budgetList = new BudgetList(this.context);
+    this.budgetList = new MyBudgetList(this.context);
 
     // Get the colors for the current Moneydance theme
     this.colors = com.moneydance.apps.md.view.gui.MDColors.getSingleton();
@@ -201,12 +202,11 @@ public class BudgetReportWindow extends JFrame
       }
 
     /*
-    * Configure the frame for our data entry screen
+    * Configure the frame for the report screen
     */
 
     // Set the frame size based on the screen size of the primary display
     this.setFrameSize();
-    this.setResizable(false);
 
     // Set what to do on close
     this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -219,89 +219,16 @@ public class BudgetReportWindow extends JFrame
     * Add the Top Panel - Configuration Options
     */
     final JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.setSize(new Dimension( this.frameWidth, BudgetReportWindow.TOP_HEIGHT ));
     topPanel.setBackground(this.colors.headerBG);
     this.add( topPanel, BorderLayout.NORTH );
 
-      /*
-      ** Top left panel
-      */
-      // Create a panel in the upper left corner of the window
-      this.topLtPanel = new JPanel(new GridBagLayout());
-      this.topLtPanel.setBackground(this.colors.headerBG);
-      topPanel.add( this.topLtPanel, BorderLayout.WEST);
-
-      // Add a clickable text link to request help
-      this.helpLink = new JLabel("User Guide", JLabel.LEFT);
-      this.helpLink.setForeground(new Color(33, 144, 255));
-      this.topLtPanel.add(this.helpLink, GridC.getc(0, 0).insets(10, 15, 10, 15));
-
-      // Create an action listener to dispatch the action when this label is clicked
-      this.helpLink.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(final MouseEvent e) {
-          BudgetReportWindow.this.showHelp();
-        }
-      });
-
-      /*
-      ** Create a center panel at the top to select the report to display.
-      */
-      this.topCtrPanel = new JPanel(new GridBagLayout());
-      this.topCtrPanel.setBackground(this.colors.headerBG);
-      topPanel.add( this.topCtrPanel, BorderLayout.CENTER );
-
-      // Configure the report selector
-      this.reportSelector = new JComboBox<String>();
-      this.reportSelector.setEditable(false);
-      this.reportSelector.setToolTipText("Select the memorized report to display");
-      
-      // Get a current list of report names
-      this.updateReportSelector();
-         
-      // Add the report selector
-      this.topCtrPanel.add(this.reportSelector, GridC.getc(1, 0).insets(10, 0, 10, 0));
-
-      // Create an action listener to dispatch the action when this control is changed
-      this.reportSelector.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-          // Load the report unless the selector is set to "<Unsaved Report>"
-          if (!BudgetReportWindow.this.reportSelector.getSelectedItem().toString().equals(Constants.UNSAVED_REPORT))
-            {
-            // Load the selected report
-            BudgetReportWindow.this.loadReport(BudgetReportWindow.this.reportSelector.getSelectedItem().toString());
-            
-            // Reload the table
-            BudgetReportWindow.this.tableModel.LoadData();
-            
-            // Update the report header
-            BudgetReportWindow.this.updateHeader();
-
-            // Update the memorized report list after loading a report in case
-            // there was an <Unsaved Report> selector in the list before this
-            // report was selected.
-            BudgetReportWindow.this.updateReportSelector();
-            }
-          else
-            {
-            // Set the report name
-            BudgetReportWindow.this.currentReport.setReportName(Constants.UNSAVED_REPORT);
-
-            // Update the report header
-            BudgetReportWindow.this.updateHeader();
-            }
-            
-          }
-        });
-
-      /*
-      ** Top right
-      */
-      // Create a panel in the upper right corner of the window
-      this.topRtPanel = new JPanel(new GridBagLayout());
-      this.topRtPanel.setBackground(this.colors.headerBG);
-      topPanel.add( this.topRtPanel, BorderLayout.EAST);
+    /*
+    ** Top right
+    */
+    // Create a panel in the upper right corner of the window
+    this.topRtPanel = new JPanel(new GridBagLayout());
+    this.topRtPanel.setBackground(this.colors.headerBG);
+    topPanel.add( this.topRtPanel, BorderLayout.EAST);
 
       /*
       ** Edit Button
@@ -353,7 +280,7 @@ public class BudgetReportWindow extends JFrame
       */
       this.exportButton = new JButton("Export");
       this.exportButton.setToolTipText("Export the report data in various formats");
-      this.topRtPanel.add(this.exportButton,GridC.getc(3,0).insets(10,5,10,5));
+      this.topRtPanel.add(this.exportButton,GridC.getc(3,0).insets(10,5,10,15));
 
       // Create an action listener to dispatch the action when this button is clicked
       this.exportButton.addActionListener(new ActionListener() {
@@ -364,25 +291,103 @@ public class BudgetReportWindow extends JFrame
       });
 
     /*
+    ** Top left panel
+    */
+    // Create a panel in the upper left corner of the window
+    this.topLtPanel = new JPanel(new GridBagLayout());
+    this.topLtPanel.setBackground(this.colors.headerBG);
+    topPanel.add( this.topLtPanel, BorderLayout.WEST);
+
+    // Add a clickable text link to request help
+    this.helpLink = new JLabel("User Guide", JLabel.LEFT);
+    this.helpLink.setForeground(new Color(33, 144, 255));
+
+    // Set the preferred size of this item so that the center panel actually is
+    // centered on the frame.
+    final Dimension d = this.topRtPanel.getPreferredSize();
+    d.setSize(d.width - 30, d.height);
+    this.helpLink.setPreferredSize(d);
+    
+    // Add the help link
+    this.topLtPanel.add(this.helpLink, GridC.getc(0, 0).insets(10, 15, 10, 15));
+
+    // Create an action listener to dispatch the action when this label is clicked
+    this.helpLink.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(final MouseEvent e) {
+        BudgetReportWindow.this.showHelp();
+      }
+    });
+
+    /*
+    ** Create a center panel at the top to select the report to display.
+    */
+    this.topCtrPanel = new JPanel(new GridBagLayout());
+    this.topCtrPanel.setBackground(this.colors.headerBG);
+    topPanel.add( this.topCtrPanel, BorderLayout.CENTER );
+
+    // Configure the report selector
+    this.reportSelector = new JComboBox<String>();
+    this.reportSelector.setEditable(false);
+    this.reportSelector.setToolTipText("Select the memorized report to display");
+    
+    // Get a current list of report names
+    this.updateReportSelector();
+        
+    // Add the report selector
+    this.topCtrPanel.add(this.reportSelector, GridC.getc(0, 0).insets(10, 0, 10, 0));
+
+    // Create an action listener to dispatch the action when this control is changed
+    this.reportSelector.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        // Load the report unless the selector is set to "<Unsaved Report>"
+        if (!BudgetReportWindow.this.reportSelector.getSelectedItem().toString().equals(Constants.UNSAVED_REPORT))
+          {
+          // Load the selected report
+          BudgetReportWindow.this.loadReport(BudgetReportWindow.this.reportSelector.getSelectedItem().toString());
+          
+          // Reload the table
+          BudgetReportWindow.this.tableModel.LoadData();
+          
+          // Update the report header
+          BudgetReportWindow.this.updateHeader();
+
+          // Update the memorized report list after loading a report in case
+          // there was an <Unsaved Report> selector in the list before this
+          // report was selected.
+          BudgetReportWindow.this.updateReportSelector();
+          }
+        else
+          {
+          // Set the report name
+          BudgetReportWindow.this.currentReport.setReportName(Constants.UNSAVED_REPORT);
+
+          // Update the report header
+          BudgetReportWindow.this.updateHeader();
+          }
+          
+        }
+      });
+
+
+    /*
     * Add the Budget Report Table Panel
     */
-    final JPanel reportPanel = new JPanel(new GridBagLayout());
-    reportPanel.setSize(new Dimension( this.frameWidth, this.frameHeight - BudgetReportWindow.TOP_HEIGHT ));
-    reportPanel.setForeground(this.colors.defaultTextForeground);
-    this.add( reportPanel, BorderLayout.CENTER ); 
+    this.reportPanel = new JPanel(new BorderLayout());
+    this.reportPanel.setPreferredSize(new Dimension( this.frameWidth, this.frameHeight - BudgetReportWindow.TOP_HEIGHT ));
+    this.reportPanel.setForeground(this.colors.defaultTextForeground);
+    this.reportPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+    this.add( this.reportPanel, BorderLayout.CENTER ); 
 
     // Add the report header label
     this.dateRange = new JLabel();
-    reportPanel.add(this.dateRange, GridC.getc(0, 1).insets(10, 0, 10, 0));
+    this.dateRange.setHorizontalAlignment(JLabel.CENTER);
+    this.dateRange.setBorder(new EmptyBorder(0, 0, 15, 0));
+    this.reportPanel.add(this.dateRange, BorderLayout.NORTH);
 
     // Create a table to use to display the budget values
     this.table = new Table(this.tableModel = new TableModel(this, this.context), this.colors, false);
-
-    // This is the size of the viewport for the data minus the Column Header and scrollbars
-    this.viewportWidth = reportPanel.getWidth() - 28; 
-    this.viewportHeight = reportPanel.getHeight() - 48;
-    this.table.setPreferredScrollableViewportSize(new Dimension(this.viewportWidth, this.viewportHeight));
-    this.table.setFillsViewportHeight(true);
 
     // Do not allow selection of an entire row
     this.table.setRowSelectionAllowed(false);
@@ -390,8 +395,8 @@ public class BudgetReportWindow extends JFrame
     // Do not allow columns to be reordered by dragging them
     this.table.getTableHeader().setReorderingAllowed(false);
 
-    // Do not allow user to resize the columns
-    this.table.getTableHeader().setResizingAllowed(false);
+    // Do not allow the JTable to do automatic resizing
+    this.table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
     // Set the minimum width of the columns as well as the cell renderer
     this.forceTableStructureChange(false); 
@@ -400,38 +405,41 @@ public class BudgetReportWindow extends JFrame
     final JScrollPane scrollPane = new JScrollPane(this.table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
     //Add the scroll pane to this panel.
-    reportPanel.add(scrollPane, GridC.getc(0, 2).insets(15, 15, 15, 15));
-    }
+    this.reportPanel.add(scrollPane, BorderLayout.CENTER);
 
-    /**
-     * Method to update the report selector with memorized report names.
-     */
-    private void updateReportSelector() {
-        // Create a default array in case no reports are found
-        String[] reportNames = {Constants.UNSAVED_REPORT};
+    // Add a component listener so we get resize events
+    this.reportPanel.addComponentListener(this);
+  }
 
-        // Find all reports that have been memorized
-        final File rootFolder = this.context.getCurrentAccountBook().getRootFolder();
-        final String[] filenames = rootFolder.list((f,name)->name.endsWith(".mbrpt"));
-  
-        // Did we find any reports?
-        if (filenames.length != 0)
-          {
-          // Strip off the file extension from the file names to get the report names
-          final List<String> v = new ArrayList<>();
-          for (int i = 0; i < filenames.length; i++) 
-            v.add(filenames[i].replace(".mbrpt", ""));
-          reportNames = v.toArray(new String[v.size()]);
-          Arrays.sort(reportNames);
-          }
+  /**
+   * Method to update the report selector with memorized report names.
+   */
+  private void updateReportSelector() {
+      // Create a default array in case no reports are found
+      String[] reportNames = {Constants.UNSAVED_REPORT};
 
-        // Update the report selector
-        if (this.reportSelector != null)
-          {
-          this.reportSelector.setModel(new DefaultComboBoxModel<String>(reportNames));
-          this.reportSelector.setSelectedItem(this.currentReport.getReportName()); 
-          }
-    }
+      // Find all reports that have been memorized
+      final File rootFolder = this.context.getCurrentAccountBook().getRootFolder();
+      final String[] filenames = rootFolder.list((f,name)->name.endsWith(".mbrpt"));
+
+      // Did we find any reports?
+      if (filenames.length != 0)
+        {
+        // Strip off the file extension from the file names to get the report names
+        final List<String> v = new ArrayList<>();
+        for (int i = 0; i < filenames.length; i++) 
+          v.add(filenames[i].replace(".mbrpt", ""));
+        reportNames = v.toArray(new String[v.size()]);
+        Arrays.sort(reportNames);
+        }
+
+      // Update the report selector
+      if (this.reportSelector != null)
+        {
+        this.reportSelector.setModel(new DefaultComboBoxModel<String>(reportNames));
+        this.reportSelector.setSelectedItem(this.currentReport.getReportName()); 
+        }
+    } 
 
   /** 
    * Method called to update the report header
@@ -455,86 +463,13 @@ public class BudgetReportWindow extends JFrame
 
 
   /** 
-   * This method sets the key value for the specified key
-   *  
-   * @param key - The key value to set
-   * @param value - The value to store at the key specified
-   * @return boolean - true if the values was successfully stored, false otherwise.
-   */
-  public boolean setProperty(final String key, final String value) {
-    // Get the file path for the configuration file
-    final File rootFolder = this.context.getCurrentAccountBook().getRootFolder();
-    final String filePath = rootFolder.getAbsolutePath()+File.separator+Constants.CONFIG_FILE;
-
-    // Create a new properties object
-    final Properties properties = new Properties();
-    
-    // Get the existing properties
-    try {
-      properties.load(new FileInputStream(filePath));
-      } 
-    catch (final IOException e) {
-      if (e instanceof FileNotFoundException)
-        System.err.println("Create new properties. This is expected.");
-      else
-        {
-        e.printStackTrace();
-        return false;
-        }
-      }
-    
-    // Set the value of the property we want to add or change
-    properties.setProperty(key, value);
-
-    // Save the properties
-    try {
-      properties.store(new FileOutputStream(filePath), null);
-      return true;
-      } 
-    catch (final IOException e) {
-      e.printStackTrace();
-      return false;
-      }
-  }
-
-
-  /** 
-   * This method returns the key value for the specified key
-   *  
-   * @param key - The key value to return
-   * @return String - The value of the property specified by the key or null if the 
-   * key value is not found.
-   */
-  public String getProperty(final String key) {
-    // Get the file path for the configuration file
-    final File rootFolder = this.context.getCurrentAccountBook().getRootFolder();
-    final String filePath = rootFolder.getAbsolutePath()+File.separator+Constants.CONFIG_FILE;
-
-    // Create a new properties object
-    final Properties properties = new Properties();
-
-    // Get the properties
-    try {
-      properties.load(new FileInputStream(filePath));
-      } 
-    catch (final IOException e) {
-      e.printStackTrace();
-      return null;
-      }
-  
-    // Return the requested key value or null if not found
-    return( properties.getProperty(key) );
-  }
-
-
-  /** 
    * Load a report 
    * 
    * @param name - The name of the report to load or null if loading the default report
    * @return boolean - true if successful, false otherwise
    */
   public boolean loadReport(String name) {
-    // Get current time information
+    // Get current time
     final Calendar now = Calendar.getInstance();
     final int thisYear = now.get(Calendar.YEAR);
     final int thisMonth = now.get(Calendar.MONTH) + 1;  // Calendar months are 0...11 and we want 1...12
@@ -543,7 +478,8 @@ public class BudgetReportWindow extends JFrame
     if (name == null)
       {
       // Get the default report name
-      name = this.getProperty(Constants.DEFAULT_REPORT);
+      final Account rootAccount = this.context.getCurrentAccountBook().getRootAccount();
+      name = rootAccount.getPreference(Constants.DEFAULT_REPORT, null);
 
       // If the name is still null there is no default so we need to create one 
       if (name == null)
@@ -642,8 +578,9 @@ public class BudgetReportWindow extends JFrame
         rptFile.delete();
 
       // If this was the default report then set the default report to null so we don't try to use it again
-      if (name.equals(this.getProperty(Constants.DEFAULT_REPORT)))
-        this.setProperty(Constants.DEFAULT_REPORT, null);
+      final Account rootAccount = this.context.getCurrentAccountBook().getRootAccount();
+      if (name.equals(rootAccount.getPreference(Constants.DEFAULT_REPORT, null)))
+        rootAccount.setPreference(Constants.DEFAULT_REPORT, null);
 
       // We don't have a current report
       this.currentReport = null;
@@ -712,34 +649,39 @@ public class BudgetReportWindow extends JFrame
    * 
    * @param informTableModel - True when the table model should be informed of the change.
    */
-  private void forceTableStructureChange(Boolean informTableModel) {
+  private void forceTableStructureChange(final Boolean informTableModel) {
+    // Adjust the column widths
+    this.resizeColumns(informTableModel);
+    
+    // Force a resize of the main window
+    this.pack();
+  }
+
+  private void resizeColumns(final Boolean informTableModel) {
     // If the table model is defined then force a structure change
     if (this.tableModel != null)
       {
-      // Do not allow the JTable to do automatic resizing
-      this.table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
       // If requested, tell the table model that the structure changed   
       if (informTableModel) 
         this.tableModel.fireTableStructureChanged();
 
       // Get the column count
-      int colCount = this.tableModel.getColumnCount();
+      final int colCount = this.tableModel.getColumnCount();
 
       // Calculate the column adjustment needed to fill the viewport width if any
       int colAdj = 0;
-      int extraSpace = this.viewportWidth - Constants.CATEGORY_WIDTH - (Constants.VALUE_WIDTH * (colCount - 1));
+      final int extraSpace = this.getWidth() - 55 - Constants.CATEGORY_WIDTH - (Constants.VALUE_WIDTH * (colCount - 1));
       if (extraSpace > 0)
         colAdj = extraSpace / colCount;
 
       // Get the column model
-      TableColumnModel colModel = this.table.getColumnModel();
+      final TableColumnModel colModel = this.table.getColumnModel();
 
       // Set column renderer and column sizes
       for (int i = 0; i < colCount; i++ ) 
         {
         // Get the TableColumn object for each column
-        TableColumn colSelect = colModel.getColumn(i);
+        final TableColumn colSelect = colModel.getColumn(i);
 
         // Is this column 0 (Category)?
         if (i == 0)
@@ -753,11 +695,8 @@ public class BudgetReportWindow extends JFrame
           colSelect.setPreferredWidth(Constants.VALUE_WIDTH + colAdj);
           }
         }
-    
-      // Force a resize of the main window
-      this.pack();
       }
-  }
+    }
 
   /**
    * @return the currentReport
@@ -791,26 +730,6 @@ public class BudgetReportWindow extends JFrame
   }
 
   /**
-   * Display this window updating certain controls to make them display properly.
-   * Note that these could not be set before the window is shown because widths
-   * of controls are not known until then.
-   */
-  void showWindow()
-  {
-    // Set the window visible
-    this.setVisible(true);
-
-    // Set the top left panel the same size as the top right panel so that the middle panel is centered
-    this.topLtPanel.setPreferredSize(new Dimension(this.topRtPanel.getWidth(), this.topLtPanel.getHeight()));
-
-    // Make the help link as wide as the panel so that it left justifies properly
-    this.helpLink.setPreferredSize(new Dimension(this.topRtPanel.getWidth()-30, this.helpLink.getHeight()));
-
-    // Force a resize to the preferred sizes
-    this.pack();
-  }
-
-  /**
    * Set the frame size based on the width and height of the display.
    */
   private void setFrameSize() {
@@ -819,8 +738,7 @@ public class BudgetReportWindow extends JFrame
     this.frameHeight = ( gd.getDisplayMode().getHeight() * 85 ) / 100;
     this.setSize( this.frameWidth, this.frameHeight );
   }
-    
-      
+        
   /** 
    * Set the custom control state based on the information passed)
    * 
@@ -1195,16 +1113,16 @@ public class BudgetReportWindow extends JFrame
     final Table printTable = new Table(this.tableModel, this.colors, true);
 
     // Get the column count
-    int colCount = printTable.getColumnCount();
+    final int colCount = printTable.getColumnCount();
 
     // Get the column model
-    TableColumnModel colModel = printTable.getColumnModel();
+    final TableColumnModel colModel = printTable.getColumnModel();
 
     // Set the column renderer and column sizes
     for (int i = 0; i < colCount; i++ ) 
       {
       // Get the TableColumn object for each column
-      TableColumn colSelect = colModel.getColumn(i);
+      final TableColumn colSelect = colModel.getColumn(i);
 
       // Is this column 0 (Category)?
       if (i == 0)
@@ -1246,7 +1164,7 @@ public class BudgetReportWindow extends JFrame
     tableHeader.setDefaultRenderer(renderer);
 
     // Print request attributes
-    PrintRequestAttributeSet attr = new HashPrintRequestAttributeSet();
+    final PrintRequestAttributeSet attr = new HashPrintRequestAttributeSet();
 
     // Print via a custom printable method so we can generate proper headers/footers
     job.setPrintable(new MyTablePrintable(printTable, JTable.PrintMode.NORMAL, header, footer));
@@ -1316,7 +1234,8 @@ public class BudgetReportWindow extends JFrame
         @Override
         public void actionPerformed(final ActionEvent e) {
           // Find out if this is the default report
-          final boolean isDefault = BudgetReportWindow.this.currentReport.getReportName().equals(BudgetReportWindow.this.getProperty(Constants.DEFAULT_REPORT));
+          final Account rootAccount = BudgetReportWindow.this.context.getCurrentAccountBook().getRootAccount();
+          final boolean isDefault = BudgetReportWindow.this.currentReport.getReportName().equals(rootAccount.getPreference(Constants.DEFAULT_REPORT, null));
 
           // Prompt "Are you sure?"
           final String message;
@@ -1333,7 +1252,7 @@ public class BudgetReportWindow extends JFrame
 
           // If this was the default report remove it from the configuration settings
           if (isDefault)
-            BudgetReportWindow.this.setProperty(Constants.DEFAULT_REPORT, null);
+            rootAccount.setPreference(Constants.DEFAULT_REPORT, null);
 
           // Get the file path to load the report from
           final File rootFolder = BudgetReportWindow.this.context.getCurrentAccountBook().getRootFolder();
@@ -1521,6 +1440,9 @@ public class BudgetReportWindow extends JFrame
       return (false);
       }
 
+    // Get the root account
+    final Account rootAccount = this.context.getCurrentAccountBook().getRootAccount();
+
     // If this is a rename, delete the old report. If the old report was the default report then reset the default report to none
     if (isRenamed)
       {
@@ -1531,8 +1453,8 @@ public class BudgetReportWindow extends JFrame
         rptFile.delete();
 
       // If we're renaming the default report then remove the old default name from the configuration file
-      if (reportName.equals(this.getProperty(Constants.DEFAULT_REPORT)))
-        this.setProperty(Constants.DEFAULT_REPORT, null);
+      if (reportName.equals(rootAccount.getPreference(Constants.DEFAULT_REPORT, null)))
+        rootAccount.setPreference(Constants.DEFAULT_REPORT, null);
       }
 
     // The current report is memorized  
@@ -1546,84 +1468,11 @@ public class BudgetReportWindow extends JFrame
 
     // If requested, set the default report to this report
     if (setDefault)
-      this.setProperty(Constants.DEFAULT_REPORT, reportName);
+      rootAccount.setPreference(Constants.DEFAULT_REPORT, reportName);
 
     // Success
     return (true);
   }
-
-  /** 
-	 * This method provides a way to add a pop-up menu item in one line of code,
-	 * 
-	 * @param menu - The pop-up menu to add the item to.
-	 * @param identifier - The identifier that will be used to determine what item was selected.
-	 * @param text - The text of the pop-up menu item.
-	 * @param tooltip - A tooltip for the menu item or null if none is desired.
-	 * @param listener - The action listener for this item.
-	 * @return JMenuItem - Returns the new menu item object.
-	 */
-	private JMenuItem addPopupMenuItem(final JPopupMenu menu, final String identifier, final String text, final ActionListener listener)
-	{
-		// Create a new menu item
-		final JMenuItem menuItem = new JMenuItem();
-
-		// Add an action listener for the menu item
-		menuItem.addActionListener(listener);
-
-		// Add a name to identify the event later
-		menuItem.setName(identifier);
-
-		// Add text to display for this menu item
-		menuItem.setText(text);
-
-		// Add popup menu selections to the menu
-		menu.add(menuItem);
-
-		// Return the menu item object
-		return menuItem;
-	}
-
-  /**
-	 * Create the action listener to receive menu item events.
-	 */
-  ActionListener popListener = new ActionListener () {
-		@Override
-		public void actionPerformed(final ActionEvent event) {
-      final String cmd = ((JMenuItem) event.getSource()).getName();
-
-      switch(cmd) {
-        // 	Copy the report to the clipboard in tab delimited format
-				case "menuItemClipboard":
-          BudgetReportWindow.this.copyToClipboard("\t", "\n");
-          break;
-
-        // Copy the report to the clipboard in CSV format
-        case "menuItemClipboardCSV":
-          BudgetReportWindow.this.copyToClipboard(",", "\n");
-          break;
-
-        // Save the report in tab delimited format
-        case "menuItemSaveTab":
-          BudgetReportWindow.this.exportToFile(".txt", "\t", "\n", false);
-          break;
-
-        // Save the report in CSV format
-        case "menuItemSaveCSV":
-          BudgetReportWindow.this.exportToFile(".csv", ",", "\n", false);
-          break;
-
-        // Save the report in CSV format for Excel
-        case "menuItemSaveCSVEx":
-          BudgetReportWindow.this.exportToFile(".csv", ",", "\n", true);
-          break;
-        
-        // Save the report as HTML
-        case "menuItemSaveHTML":
-          BudgetReportWindow.this.exportToHTML();
-          break;
-      }
-    }
-	};
 
   
   /**
@@ -1632,7 +1481,7 @@ public class BudgetReportWindow extends JFrame
    * @param cellBreak - The cell break string
    * @param lineBreak - The line break string
    */
-  private void copyToClipboard(String cellBreak, String lineBreak) {
+  private void copyToClipboard(final String cellBreak, final String lineBreak) {
     // Create a transferrable of the table data to copy to the clipboard
     final StringSelection sel  = new StringSelection(this.exportTable(cellBreak, lineBreak)); 
   
@@ -1652,15 +1501,15 @@ public class BudgetReportWindow extends JFrame
    * @param lineBreak - The line break string
    * @param excelFormat - True when exporting in excel format, false otherwise
    */
-  private void exportToFile(String extension, String cellBreak, String lineBreak, boolean excelFormat) {
+  private void exportToFile(final String extension, final String cellBreak, final String lineBreak, final boolean excelFormat) {
     String filePath;
     File file;
 
     // Select the location and name for file
-    JFileChooser fileChooser = new JFileChooser();
+    final JFileChooser fileChooser = new JFileChooser();
     fileChooser.setDialogTitle("Specify a location and file name to export the report to");
     fileChooser.setSelectedFile(new File(this.currentReport.getReportName()+extension));
-    int userSelection = fileChooser.showSaveDialog(this);
+    final int userSelection = fileChooser.showSaveDialog(this);
    
     // Did the user select or cancel?
     if (userSelection == JFileChooser.APPROVE_OPTION) 
@@ -1686,7 +1535,7 @@ public class BudgetReportWindow extends JFrame
     try
       {
       // Open a new file writer
-      FileWriter fileWriter = new FileWriter(filePath);
+      final FileWriter fileWriter = new FileWriter(filePath);
       
       // If excelFormat then prepend the UTF-8 Byte Order Mark
       if (excelFormat)
@@ -1720,7 +1569,7 @@ public class BudgetReportWindow extends JFrame
    * @param lineBreak - The line break string
    * @return String - The returned string for export
    */
-  private String exportTable(String cellBreak, String lineBreak) {
+  private String exportTable(final String cellBreak, final String lineBreak) {
     // Create a string buffer to hold the data to export
     final StringBuffer dataString = new StringBuffer(); 
 
@@ -1774,10 +1623,10 @@ public class BudgetReportWindow extends JFrame
     File file;
 
     // Select the location and name for file
-    JFileChooser fileChooser = new JFileChooser();
+    final JFileChooser fileChooser = new JFileChooser();
     fileChooser.setDialogTitle("Specify a location and file name to export the report to");
     fileChooser.setSelectedFile(new File(this.currentReport.getReportName()+".html"));
-    int userSelection = fileChooser.showSaveDialog(this);
+    final int userSelection = fileChooser.showSaveDialog(this);
    
     // Did the user select or cancel?
     if (userSelection == JFileChooser.APPROVE_OPTION) 
@@ -1803,7 +1652,7 @@ public class BudgetReportWindow extends JFrame
     try
       {
       // Open a new file writer
-      FileWriter fileWriter = new FileWriter(filePath);
+      final FileWriter fileWriter = new FileWriter(filePath);
 
       // Get the row and column count of the table
       final int numRows = this.table.getRowCount(); 
@@ -1900,7 +1749,7 @@ public class BudgetReportWindow extends JFrame
       fileWriter.append("</tr>\n");
 
       // Get the budget categories List
-      BudgetCategoriesList budgetCategoriesList = this.tableModel.getBudgetCategoriesList();
+      final BudgetCategoriesList budgetCategoriesList = this.tableModel.getBudgetCategoriesList();
 
       // Add the table data
       for (int row = 0; row < numRows; row++) 
@@ -1968,21 +1817,106 @@ public class BudgetReportWindow extends JFrame
   }
 
   /**
+   * This class extends JMenuItem adding an ID 
+   *
+   * @author  Jerry Jones
+   */
+  public class BudgetReportMenuItem extends JMenuItem
+  {
+    // Identifier for this menu item
+    int id;
+
+    /**
+     * Constructor method used to create the top bar menu items.
+     * 
+     * @param menu - The pop-up menu to add the item to.
+     * @param id - The identifier that will be used to determine what item was selected.
+     * @param text - The text of the pop-up menu item.
+     * @param listener - The action listener for this item.
+     */
+    public BudgetReportMenuItem(final JPopupMenu menu, final int id, final String text, final ActionListener listener) 
+    {
+        // Call the super class constructor
+        super();
+
+        // Save the identifier for this menu item
+        this.id = id;
+
+        // Set the text to display for this menu item
+        this.setText(text);
+
+        // Add an action listener for the menu item
+        this.addActionListener(listener);
+
+        // Add the popup menu item to the menu
+        menu.add(this);
+    }
+
+    /**
+     * Method to return the ID of a menu item
+     * 
+     * @return the id
+     */
+    public int getId() {
+        return this.id;
+    }
+  }
+
+  /**
+	 * Create the action listener to receive menu item events.
+	 */
+  ActionListener popListener = new ActionListener () {
+		@Override
+		public void actionPerformed(final ActionEvent event) {
+      final int id = ((BudgetReportMenuItem) event.getSource()).getId();
+
+      switch(id) {
+        // 	Copy the report to the clipboard in tab delimited format
+				case Constants.EXPORT_CLIPBOARD:
+          BudgetReportWindow.this.copyToClipboard("\t", "\n");
+          break;
+
+        // Copy the report to the clipboard in CSV format
+        case Constants.EXPORT_CLIPBOARD_CSV:
+          BudgetReportWindow.this.copyToClipboard(",", "\n");
+          break;
+
+        // Save the report in tab delimited format
+        case Constants.EXPORT_TAB:
+          BudgetReportWindow.this.exportToFile(".txt", "\t", "\n", false);
+          break;
+
+        // Save the report in CSV format
+        case Constants.EXPORT_CSV:
+          BudgetReportWindow.this.exportToFile(".csv", ",", "\n", false);
+          break;
+
+        // Save the report in CSV format for Excel
+        case Constants.EXPORT_EXCEL:
+          BudgetReportWindow.this.exportToFile(".csv", ",", "\n", true);
+          break;
+        
+        // Save the report as HTML
+        case Constants.EXPORT_HTML:
+          BudgetReportWindow.this.exportToHTML();
+          break;
+      }
+    }
+	};
+
+  /**
    * Method to export the data in various formats
    */
-  private void doExport(Component c) {
+  private void doExport(final Component c) {
 		// Create new popup menu
-		JPopupMenu popMenu = new JPopupMenu();
-    this.addPopupMenuItem(popMenu, "menuItemClipboard", "Copy to Clipboard", this.popListener);
-    this.addPopupMenuItem(popMenu, "menuItemClipboardCSV", "Copy to Clipboard (CSV)", this.popListener);
-    this.addPopupMenuItem(popMenu, "menuItemSaveTab", "Save as Tab Delimited", this.popListener);
-    this.addPopupMenuItem(popMenu, "menuItemSaveCSV", "Save as Comma Delimited (CSV)", this.popListener);
-    this.addPopupMenuItem(popMenu, "menuItemSaveCSVEx", "Save as CSV, Encoded for Excel)", this.popListener);
-    this.addPopupMenuItem(popMenu, "menuItemSaveHTML", "Save as HTML", this.popListener);
-    
+		final JPopupMenu popMenu = new JPopupMenu();
+
+    // Add the popup menu items
+    for (int i = 0; i < Constants.exportItems.length; i++)
+      new BudgetReportMenuItem(popMenu, i, Constants.exportItems[i], this.popListener);  
+   
     // Show the menu under the button
-    //popMenu.show(c, 0, c.getHeight() + 4); // Works but menu starts at left edge of button. Can't use negative x values.
-    popMenu.show(this, this.frameWidth + 10 - (int)popMenu.getPreferredSize().getWidth(), 4 + this.getInsets().top + c.getY() + c.getHeight());
+    popMenu.show(this, this.getWidth() - 15 - (int)popMenu.getPreferredSize().getWidth(), 4 + this.getInsets().top + c.getY() + c.getHeight());
   }
 
   /**
@@ -1991,15 +1925,15 @@ public class BudgetReportWindow extends JFrame
    */
   private void showHelp() 
   {
-    String url = "https://github.com/jerrymjones/MonthlyBudgetReport/wiki";
-    String myOS = System.getProperty("os.name").toLowerCase();
+    final String url = "https://github.com/jerrymjones/MonthlyBudgetReport/wiki";
+    final String myOS = System.getProperty("os.name").toLowerCase();
     try 
       {
       if (myOS.contains("windows"))
         { // Windows
         if (Desktop.isDesktopSupported())
           {
-          Desktop desktop = Desktop.getDesktop();
+          final Desktop desktop = Desktop.getDesktop();
           desktop.browse(new URI(url));
           }
         else
@@ -2007,7 +1941,7 @@ public class BudgetReportWindow extends JFrame
         } 
       else 
         { // Not-windows
-          Runtime runtime = Runtime.getRuntime();
+          final Runtime runtime = Runtime.getRuntime();
           if (myOS.contains("mac")) // Apple
             runtime.exec("open " + url);
           else if (myOS.contains("nix") || myOS.contains("nux")) // Linux
@@ -2027,7 +1961,7 @@ public class BudgetReportWindow extends JFrame
    * We'll tell the user and copy the URL to the clipboard so it can be manually
    * opened.
    */
-  private void showHelpFailed(String url)
+  private void showHelpFailed(final String url)
   {
     // Create a transferrable of the url to copy to the clipboard
     final StringSelection sel  = new StringSelection(url); 
@@ -2044,4 +1978,23 @@ public class BudgetReportWindow extends JFrame
     "Browser Open Failed",
     JOptionPane.INFORMATION_MESSAGE);
   }
+
+  /*
+   * ComponentListener events
+   */
+  @Override
+  public void componentResized(final ComponentEvent e) 
+  {
+    // Resize the table columns
+    this.resizeColumns(true);     
+  }
+
+  @Override
+  public void componentMoved(final ComponentEvent e) {}
+
+  @Override
+  public void componentShown(final ComponentEvent e) {} 
+
+  @Override
+  public void componentHidden(final ComponentEvent e) {}
 }

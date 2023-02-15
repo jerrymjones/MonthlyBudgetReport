@@ -47,7 +47,7 @@ import com.moneydance.apps.md.controller.FeatureModuleContext;
 *
 * @author  Jerry Jones
 */
-public class BudgetList {
+public class MyBudgetList {
 	private final Map<String,Budget> mapBudgets = new HashMap<String,Budget>();
 
 	/** 
@@ -55,7 +55,7 @@ public class BudgetList {
 	 * 
 	 * @param context - The context for this feature module.
      */
-	public BudgetList(final FeatureModuleContext context) { 
+	public MyBudgetList(final FeatureModuleContext context) { 
 		// Create the map of budgets by name and object - only load new style monthly budgets
 		final List<Budget> listBudgets = context.getCurrentAccountBook().getBudgets().getAllBudgets();
 		for (final Budget objBud: listBudgets) {

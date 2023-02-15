@@ -82,12 +82,12 @@ public class TableModel extends AbstractTableModel  {
      */
     public void LoadData() {
         // Get the start month and number of months from the current report
-        Report currentReport = this.window.getCurrentReport();
-        int startMonth = currentReport.getStartMonth();
-        int months = (currentReport.getEndMonth() -  currentReport.getStartMonth()) + 1;
+        final Report currentReport = this.window.getCurrentReport();
+        final int startMonth = currentReport.getStartMonth();
+        final int months = (currentReport.getEndMonth() -  currentReport.getStartMonth()) + 1;
 
         // Get the budget item list
-        BudgetList budgetList = new BudgetList(this.context);
+        final MyBudgetList budgetList = new MyBudgetList(this.context);
         this.budgetItemList = budgetList.getBudget(currentReport.getBudgetName()).getItemList();
 
         // Create a new Budget Categories list
@@ -141,7 +141,7 @@ public class TableModel extends AbstractTableModel  {
      * @param startMonth - The starting month to retrieve,
      * @param months - The number of months to retrieve.
      */
-    private void addIf(Account acct, AccountType type, int startMonth, int months) 
+    private void addIf(final Account acct, final AccountType type, final int startMonth, final int months) 
     {
     // Get the type of this account
     final AccountType acctType = acct.getAccountType();
@@ -216,7 +216,7 @@ public class TableModel extends AbstractTableModel  {
     @Override
     public int getColumnCount() {
         // Get the current report
-        Report currentReport = this.window.getCurrentReport();
+        final Report currentReport = this.window.getCurrentReport();
 
         // Now determine the column count for the selected subtotal type
         if (currentReport.getSubtotalBy() == Constants.SUBTOTAL_NONE)
@@ -252,7 +252,7 @@ public class TableModel extends AbstractTableModel  {
         else
             {
             // Add month if subtotal by month
-            Report currentReport = this.window.getCurrentReport();
+            final Report currentReport = this.window.getCurrentReport();
             if ((currentReport.getSubtotalBy() == Constants.SUBTOTAL_MONTH) && ((column - 1) % 3 == 0))
                 {
                 // Use "Total" for last column
@@ -279,7 +279,7 @@ public class TableModel extends AbstractTableModel  {
     // Returns a Double for editable cells - be careful when saving
     public Object getValueAt(final int row, final int column) {
         // Get the current report
-        Report currentReport = this.window.getCurrentReport();
+        final Report currentReport = this.window.getCurrentReport();
 
         // Get the category item
         final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
@@ -333,14 +333,14 @@ public class TableModel extends AbstractTableModel  {
                     }
                 else
                     {
-                    System.err.println("The column is out of range in getValueAt.");
+                    System.err.println("ERROR: The column is out of range in getValueAt.");
                     return null;
                     }
                 }
             }
         else
             {
-            System.err.println("Error: Item is null in getValueAt.");
+            System.err.println("ERROR: Item is null in getValueAt.");
             return null;
             }
     }

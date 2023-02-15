@@ -34,7 +34,7 @@ public abstract class Constants {
     /*
      * Report Period constants
     */
-    public static final String[] periods            = {"Automatic", "This Year", "Last Year", "This Month", "Last Month", "Custom"};
+    public static final String[] periods            = { "Automatic", "This Year", "Last Year", "This Month", "Last Month", "Custom" };
     public static final int PERIOD_AUTOMATIC        = 0;
     public static final int PERIOD_THIS_YEAR        = 1;
     public static final int PERIOD_LAST_YEAR        = 2;
@@ -43,9 +43,25 @@ public abstract class Constants {
     public static final int PERIOD_CUSTOM           = 5;
 
     /*
+     * Export Menu Items
+     */
+    public static final String[] exportItems        = { "Copy to Clipboard", 
+                                                        "Copy to Clipboard (CSV)", 
+                                                        "Save as Tab Delimited", 
+                                                        "Save as Comma Delimited (CSV)", 
+                                                        "Save as CSV, Encoded for Excel)", 
+                                                        "Save as HTML" };
+    public static final int EXPORT_CLIPBOARD        = 0;
+    public static final int EXPORT_CLIPBOARD_CSV    = 1;
+    public static final int EXPORT_TAB              = 2;
+    public static final int EXPORT_CSV              = 3;
+    public static final int EXPORT_EXCEL            = 4;
+    public static final int EXPORT_HTML             = 5;
+
+    /*
      * Report subtotal constants
      */
-    public static final String[] subtotal = {"None", "Subtotal by Month"};
+    public static final String[] subtotal           = { "None", "Subtotal by Month" };
     public static final int SUBTOTAL_NONE           = 0;
     public static final int SUBTOTAL_MONTH          = 1;
     
@@ -53,23 +69,22 @@ public abstract class Constants {
      * Report months list
      */
     // Note that months using the below array will be indexes from 0...11 NOT 1...12
-    public static final String[] months             = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+    public static final String[] months             = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
     // Short month names for subtotal by month column headers
-    public static final String[] shortMonths        = {"Jan", "Feb", "March", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec", "Total"};
-
+    public static final String[] shortMonths        = { "Jan", "Feb", "March", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec", "Total" };
+  
     /*
-     * Configuration file constants
+     * Configuration parameter constants
      */
-    public static String CONFIG_FILE                = "Monthly Budget.mbcfg";
-    public static String DEFAULT_REPORT             = "default_report";
+    public static String DEFAULT_REPORT             = "MonthlyBudgetBars_default_report";
     public static String UNSAVED_REPORT             = "<Report Not Memorized>";
 
     /*
      * Table column widths
      */
-    public static final int CATEGORY_WIDTH          = 400;
-    public static final int VALUE_WIDTH             = 200;
+    public static final int CATEGORY_WIDTH          = 240;
+    public static final int VALUE_WIDTH             = 100;
 
     public static final int PRINT_CATEGORY_WIDTH    = 240;
     public static final int PRINT_VALUE_WIDTH       = 60; 

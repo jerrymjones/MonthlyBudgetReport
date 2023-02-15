@@ -38,6 +38,11 @@ import com.infinitekind.moneydance.model.TxnSet;
 import com.infinitekind.util.DateUtil;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
 
+/**
+ * Class to total transactions for a given category item.
+ *
+ * @author  Jerry Jones
+ */
 public class TransactionTotals implements TxnSearch{
 	// Transaction set for this account
 	private final TxnSet txnSet;
@@ -56,6 +61,7 @@ public class TransactionTotals implements TxnSearch{
 	 * month for a given account (category) given a start date and the 
 	 * number of months to return.
 	 * 
+	 * @param item - The budget category item to total
 	 * @param context - The feature module (extension) context.
 	 * @param acct - The account (category) to total.
 	 * @param budgetYear - The year we are editing (YYYY).

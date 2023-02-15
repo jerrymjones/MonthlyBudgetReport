@@ -99,18 +99,21 @@ public class Main extends FeatureModule {
 
 
   private synchronized void showConsole() {
-    if (this.budgetReportWindow == null) {
+    if (this.budgetReportWindow == null) 
+      {
       this.budgetReportWindow = new BudgetReportWindow(this);
 
-      if (this.budgetReportWindow != null) {
+      if (this.budgetReportWindow != null) 
+        {
         if (!this.budgetReportWindow.bError)
-          this.budgetReportWindow.showWindow();
-        else {
+          this.budgetReportWindow.setVisible(true);
+        else
+          {
           this.closeConsole();
           return;
+          }
         }
       }
-    }
     else {
       // Force a reload if the window is already initialized.
       this.budgetReportWindow.getModel().LoadData();
