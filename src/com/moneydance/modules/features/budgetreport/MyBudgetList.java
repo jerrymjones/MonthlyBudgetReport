@@ -64,6 +64,14 @@ public class MyBudgetList {
 		}
 	}
 
+	/**
+	 * This method returns the number of monthly budgets found.
+	 * 
+	 * @return - The number of monthly budgets found.
+	 */
+	public int getBudgetCount() {
+		return this.mapBudgets.size();
+	}
 	
 	/** 
 	 * This method returns a sorted array of the budget names found.

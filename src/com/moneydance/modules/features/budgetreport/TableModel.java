@@ -32,6 +32,7 @@ package com.moneydance.modules.features.budgetreport;
 
 import java.util.Iterator;
 
+import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
 import com.infinitekind.moneydance.model.Account;
@@ -88,6 +89,17 @@ public class TableModel extends AbstractTableModel  {
 
         // Get the budget item list
         final MyBudgetList budgetList = new MyBudgetList(this.context);
+        if (budgetList.getBudgetCount() == 0)
+            {
+            // Display an error message - No budgets exist!
+            JOptionPane.showMessageDialog( this.window,
+            "No monthly style budgets have been created.  Use 'Tools:Budget Manager' to create a monthly budget before using this extension.",
+            "Error (Monthly Budget Report)",
+            JOptionPane.ERROR_MESSAGE);
+            
+            return;
+            }
+
         this.budgetItemList = budgetList.getBudget(currentReport.getBudgetName()).getItemList();
 
         // Create a new Budget Categories list
@@ -153,7 +165,9 @@ public class TableModel extends AbstractTableModel  {
         if ((!acct.getAccountOrParentIsInactive()) && (!acct.getHideOnHomePage()))
             {
             // Add this category
-            final BudgetCategoryItem item = this.budgetCategoriesList.add(acct, acctType);
+            final BudgetCategoryItem item = this.budgetCategoriesList.add(acct);
+            if (item == null)
+                return;
 
             // If this is not a roll-up category then we need to get the current budget values for this category
             if (!item.getHasChildren())

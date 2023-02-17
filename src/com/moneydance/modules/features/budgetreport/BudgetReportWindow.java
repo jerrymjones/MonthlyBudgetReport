@@ -188,11 +188,27 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
     // Get FeatureModule context
     this.context = extension.getUnprotectedContext();
 
+    // Get the colors for the current Moneydance theme
+    this.colors = com.moneydance.apps.md.view.gui.MDColors.getSingleton();
+
     // Get the list of available budgets
     this.budgetList = new MyBudgetList(this.context);
 
-    // Get the colors for the current Moneydance theme
-    this.colors = com.moneydance.apps.md.view.gui.MDColors.getSingleton();
+    // No Monthly budgets are available, so exit
+    if (this.budgetList.getBudgetCount() == 0)
+      {
+      // Display an error message - No budgets exist!
+      JOptionPane.showMessageDialog( this,
+      "No monthly style budgets have been created.  Use 'Tools:Budget Manager' to create a monthly budget before using this extension.",
+      "Error (Monthly Budget Report)",
+      JOptionPane.ERROR_MESSAGE);
+      
+      // Tell main that window initialization failed
+      this.bError = true;
+
+      // Exit from the constructor
+      return;
+      }
 
     // Load the default report
     if (!this.loadReport(null))

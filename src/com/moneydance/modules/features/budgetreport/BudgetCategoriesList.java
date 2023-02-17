@@ -35,8 +35,9 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+
+import javax.swing.JOptionPane;
 
 import com.infinitekind.moneydance.model.Account;
 
@@ -77,41 +78,57 @@ public class BudgetCategoriesList {
         return this.lhm.size();  
     }
 
-    
-    /** 
-     * This method returns a set containing all the category items in the list.
+
+    /**
+     * Method to generate the key for the linked hash map based on the full
+     * account name and the account type.
      * 
-     * @return Set<Entry<String, BudgetCategoryItem>>
+     * @param fullName - The name of the category.
+     * @param type - The type of category.
+     * @return String
      */
-    public Set<Map.Entry<String, BudgetCategoryItem>> getCategorySet() {
-        return this.lhm.entrySet();
+    private String getKey(final String fullName, final Account.AccountType type)
+    {
+        String suffix;
+
+        if (type == Account.AccountType.ROOT)
+            suffix = "_R";
+        else if (type == Account.AccountType.INCOME)
+            suffix = "_I";
+        else if (type == Account.AccountType.EXPENSE)
+            suffix = "_E";
+        else    // Should never get here
+            suffix = "";
+            
+        return (fullName + suffix);
     }
 
-    
+
     /** 
      * Add a special category to the list - Totals, Income or Expense for example.
      * 
      * <p><b>Note:</b> Special categories always have children.
      * 
-     * @param name - The name of the special category to add.
+     * @param fullName - The name of the special category to add.
      * @param type - The type of this category: Account.AccountType.ROOT (Totals),
      * Account.AccountType.Income (Income) or Account.AccountType.EXPENSE (Expenses).
      * @param level - The indent level of this category.
      * @return BudgetCategoryItem - Returns the BudgetCategoryItem object created 
      * for this category.
      */
-    public BudgetCategoryItem add(final String name, final Account.AccountType type, final int level) {
+    public BudgetCategoryItem add(final String fullName, final Account.AccountType type, final int level) {
         // Create a new budget category item for this category
-        final BudgetCategoryItem bcItem = new BudgetCategoryItem(name, type, this.tracker.getParent(level, true), level);
-        
+        final BudgetCategoryItem bcItem = new BudgetCategoryItem(fullName, type, this.tracker.getParent(level, true), level);
+
+     
         // Put the item in the hash map
-        this.lhm.put(name, bcItem);
+        this.lhm.put(this.getKey(fullName, type), bcItem);
 
         // Return the new item to the caller
         return bcItem;
     }
 
-    
+
     /** 
      * Add a regular Moneydance category to the list.
      * 
@@ -123,7 +140,19 @@ public class BudgetCategoriesList {
      * @return BudgetCategoryItem - Returns the BudgetCategoryItem object created 
      * for this category.
      */
-    public BudgetCategoryItem add(final Account acct, final Account.AccountType type) {   
+    public BudgetCategoryItem add(final Account acct) {
+        // Prompt the user if a duplicate category is found (same parent and same
+        // type) and then exit without adding the category. 
+        if (this.lhm.containsKey(this.getKey(acct.getFullAccountName(), acct.getAccountType())))
+            {
+            // Display a warning message - Duplicate category!
+            JOptionPane.showMessageDialog( null,
+            "The category "+acct.getFullAccountName()+" of type "+acct.getAccountType().toString()+" is included more than once and this one will be ignored. Although Moneydance allows this, duplicates are confusing at best and may not consistently work even in Moneydance. This category should be renamed.",
+            "Warning (Monthly Budget Report)",
+            JOptionPane.WARNING_MESSAGE);
+            return null;
+            }
+
         // Get the sub-accounts of this account
         final List <Account> subAccts = acct.getSubAccounts();
         
@@ -141,16 +170,16 @@ public class BudgetCategoriesList {
         }
 
         // Get the full account name of the category item
-        final String name = acct.getFullAccountName();
+        final String fullName = acct.getFullAccountName();
 
         // Get the indent level of this category
-        final int indentLevel = BudgetCategoriesList.calcIndentLevel(name);
+        final int indentLevel = BudgetCategoriesList.calcIndentLevel(fullName);
         
         // Create a new budget category item for this category
-        final BudgetCategoryItem bcItem = new BudgetCategoryItem(acct, type, this.tracker.getParent(indentLevel, hasChildren), indentLevel, hasChildren);
+        final BudgetCategoryItem bcItem = new BudgetCategoryItem(acct, acct.getAccountType(), this.tracker.getParent(indentLevel, hasChildren), indentLevel, hasChildren);
         
         // Put the item in the hash map
-        this.lhm.put(acct.getFullAccountName(), bcItem);
+        this.lhm.put(this.getKey(fullName, acct.getAccountType()), bcItem);
 
         // Return the new item to the caller
         return bcItem;
@@ -162,12 +191,13 @@ public class BudgetCategoriesList {
      * passed.
      *  
      * @param fullAcctName - The full account name i.e. Auto:Fuel.
+     * @param type - The type of this category: 
      * @return BudgetCategoryItem - The BudgetCategoryItem object corresponding
      * to the full account name. A null return value indicates the item does
      * not exist.
      */
-    public BudgetCategoryItem getCategoryItem(final String fullAcctName) {
-        return this.lhm.get(fullAcctName);
+    public BudgetCategoryItem getCategoryItem(final String fullAcctName, final Account.AccountType type) {
+        return this.lhm.get(this.getKey(fullAcctName, type));
     }
      
     
@@ -183,51 +213,20 @@ public class BudgetCategoriesList {
         return this.lhm.get(keys.toArray()[index]);
     }
 
-    
+       
     /** 
-     * This method returns the short name for a category based on the full
-     * account name passed.
+     * This method calculates the indent level given a full category name.
      * 
      * @param fullAcctName - The full account name i.e. Auto:Fuel.
-     * @return String - The short name for the category specified
-     * by the full account name. Returns null if the full account
-     * name is not valid.
-     */
-    public String getShortName(final String fullAcctName) {
-        return this.lhm.get(fullAcctName).getShortName();
-    }
-
-    
-    /** 
-     * This method returns the indent level of the category based on the full
-     * account name passed.
-     * 
-     * @param fullAcctName - The full account name i.e. Auto:Fuel.
-     * @return int - The indent level of this category or -1 if the full account
-     * name is not found.
-     */
-    public int getIndent(final String fullAcctName) {
-        BudgetCategoryItem item = this.lhm.get(fullAcctName);
-        if (item != null)
-            return item.getIndentLevel();
-        else
-            return -1;
-    }
-
-    
-    /** 
-     * This method calculates the indent level given a long category name.
-     * 
-     * @param longName - The long category name i.e. "Auto:fuel"
      * @return int - The indent level of the category. For "Auto:fuel" 3 would
      * be returned.
      */
-    private static int calcIndentLevel(final String longName) {
+    private static int calcIndentLevel(final String fullAcctName) {
         // Start at 2 instead of 0 to account for special "Income", "Expense", and "Totals" top level categories
         int level = 2;
-        for (int i = 0; i < longName.length(); i++) 
+        for (int i = 0; i < fullAcctName.length(); i++) 
             {
-            if (longName.charAt(i) == ':')
+            if (fullAcctName.charAt(i) == ':')
                 level++;
             }
 
