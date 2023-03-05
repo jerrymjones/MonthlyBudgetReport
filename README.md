@@ -19,8 +19,9 @@ rather be able to track exactly what happened in the budget. If you don't want
 that ability, you may just want to use the default Moneydance budget report.
 
 Monthly Budget Report is a companion to to my [Monthly Budget Editor](https://github.com/jerrymjones/MonthlyBudgetEditor) that not only
-allows for negative budget amounts but also allows for easy entry of budget
-amounts in a compact spreadsheet style format.
+allows for negative budget amounts but also allows for easy entry of budget amounts in a compact spreadsheet style format. I have also
+created [Monthly Budget Bars](https://github.com/jerrymjones/MonthlyBudgetBars) another companion that creates a Summary Page widget
+which also works properly with negative budget amounts.
 
 ## Installation
 
