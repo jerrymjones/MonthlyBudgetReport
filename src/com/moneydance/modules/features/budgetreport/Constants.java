@@ -77,7 +77,7 @@ public abstract class Constants {
     /*
      * Configuration parameter constants
      */
-    public static String DEFAULT_REPORT             = "MonthlyBudgetBars_default_report";
+    public static String DEFAULT_REPORT             = "MonthlyBudgetReport_default_report";
     public static String UNSAVED_REPORT             = "<Report Not Memorized>";
 
     /*
@@ -88,4 +88,11 @@ public abstract class Constants {
 
     public static final int PRINT_CATEGORY_WIDTH    = 240;
     public static final int PRINT_VALUE_WIDTH       = 60; 
+
+    /*
+     * UUIDs for special categories
+     */
+    public static final String UUID_OVERALL         = "00000000-0000-0000-0000-000000000001";
+    public static final String UUID_INCOME          = "00000000-0000-0000-0000-000000000002";
+    public static final String UUID_EXPENSE         = "00000000-0000-0000-0000-000000000003";
 }

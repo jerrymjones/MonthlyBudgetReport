@@ -1776,7 +1776,7 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
           String weight;
 
           // Rows with children are roll-up rows and will be bolded
-          if (budgetCategoriesList.getCategoryItemByIndex(row).getHasChildren())
+          if (budgetCategoriesList.getCategoryItemByIndex(row).hasChildren())
             weight="bold";
           else
             weight="normal";

@@ -106,10 +106,10 @@ public class TableModel extends AbstractTableModel  {
         this.budgetCategoriesList = new BudgetCategoriesList();
 
         // Create a special category for the Income - Expenses total row
-        this.budgetCategoriesList.add("Income-Expenses", Account.AccountType.ROOT, 0);
+        this.budgetCategoriesList.add(Constants.UUID_OVERALL, "Income-Expenses", Account.AccountType.ROOT, 0);
 
         // Add a special category to the table for "Income"
-        this.budgetCategoriesList.add("Income", Account.AccountType.INCOME, 1);
+        this.budgetCategoriesList.add(Constants.UUID_INCOME, "Income", Account.AccountType.INCOME, 1);
 
         // Iterate through the accounts to find all active Income categories
         // Note that accounts and categories are the same, they are all Accounts. 
@@ -123,7 +123,7 @@ public class TableModel extends AbstractTableModel  {
             }
 
         // Add a special category to the table for "Expenses"
-        this.budgetCategoriesList.add("Expenses", Account.AccountType.EXPENSE, 1);
+        this.budgetCategoriesList.add(Constants.UUID_EXPENSE, "Expenses", Account.AccountType.EXPENSE, 1);
 
         // Iterate through the accounts to find all active Expense categories
         for (final Iterator<Account> iter = AccountUtil.getAccountIterator(this.context.getCurrentAccountBook()); iter.hasNext(); ) 
@@ -170,7 +170,7 @@ public class TableModel extends AbstractTableModel  {
                 return;
 
             // If this is not a roll-up category then we need to get the current budget values for this category
-            if (!item.getHasChildren())
+            if (!item.hasChildren())
                 {
                 for (int month = startMonth; month < (startMonth + months); month++)
                     {
@@ -179,13 +179,13 @@ public class TableModel extends AbstractTableModel  {
                     if (i != null)
                         item.setBudgetValueForMonth(this.window.getModel(), this.budgetCategoriesList, month, i.getAmount(), acctType);
                     }
-
-                // Retrieve the actual totals for this account
-                new TransactionTotals(item, this.context, acct, this.getBudgetYear(), startMonth, months);
-
-                // Update the parent actual totals
-                item.updateParentActualTotals(this.budgetCategoriesList, item);
                 }
+
+            // Retrieve the actual totals for this account
+            new TransactionTotals(item, this.context, acct, this.getBudgetYear(), startMonth, months);
+
+            // Update the parent actual totals
+            item.updateParentActualTotals(this.budgetCategoriesList, item);
             }
         }
     }
@@ -304,13 +304,13 @@ public class TableModel extends AbstractTableModel  {
                 {
                 // Display the category indented per the indent level
                 return (item.getIndentLevel() == 0) ? 
-                    "     "+item.getShortName() : 
-                    String.format(" %1$" + item.getIndentLevel() * 6 + "s%2$s", "", item.getShortName());
+                    "    "+item.getShortName() : 
+                    String.format("    %1$" + item.getIndentLevel() * 6 + "s%2$s", "", item.getShortName());
                 }
             else
                 {
                 // If the row is a parent row and 
-                if ((item.getHasChildren() == true) && (!currentReport.isSubtotalParents()))
+                if ((item.hasChildren() == true) && (!currentReport.isSubtotalParents()))
                     return (new String(""));
             
                 // Budget values and totals

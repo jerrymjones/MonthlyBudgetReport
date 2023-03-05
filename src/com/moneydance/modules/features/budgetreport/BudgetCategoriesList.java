@@ -79,36 +79,12 @@ public class BudgetCategoriesList {
     }
 
 
-    /**
-     * Method to generate the key for the linked hash map based on the full
-     * account name and the account type.
-     * 
-     * @param fullName - The name of the category.
-     * @param type - The type of category.
-     * @return String
-     */
-    private String getKey(final String fullName, final Account.AccountType type)
-    {
-        String suffix;
-
-        if (type == Account.AccountType.ROOT)
-            suffix = "_R";
-        else if (type == Account.AccountType.INCOME)
-            suffix = "_I";
-        else if (type == Account.AccountType.EXPENSE)
-            suffix = "_E";
-        else    // Should never get here
-            suffix = "";
-            
-        return (fullName + suffix);
-    }
-
-
     /** 
      * Add a special category to the list - Totals, Income or Expense for example.
      * 
      * <p><b>Note:</b> Special categories always have children.
      * 
+     * @param UUID - The UUID of the account to add.
      * @param fullName - The name of the special category to add.
      * @param type - The type of this category: Account.AccountType.ROOT (Totals),
      * Account.AccountType.Income (Income) or Account.AccountType.EXPENSE (Expenses).
@@ -116,13 +92,13 @@ public class BudgetCategoriesList {
      * @return BudgetCategoryItem - Returns the BudgetCategoryItem object created 
      * for this category.
      */
-    public BudgetCategoryItem add(final String fullName, final Account.AccountType type, final int level) {
+    public BudgetCategoryItem add(final String UUID, final String fullName, final Account.AccountType type, final int level) {
         // Create a new budget category item for this category
         final BudgetCategoryItem bcItem = new BudgetCategoryItem(fullName, type, this.tracker.getParent(level, true), level);
 
      
         // Put the item in the hash map
-        this.lhm.put(this.getKey(fullName, type), bcItem);
+        this.lhm.put(UUID, bcItem);
 
         // Return the new item to the caller
         return bcItem;
@@ -135,7 +111,6 @@ public class BudgetCategoriesList {
      * <p><b>Note:</b> A category in Moneydance is the same thing as an account.
      * 
      * @param acct - The account object of the category to add.
-     * @param type - The type of this category: 
      * Account.AccountType.Income (Income) or Account.AccountType.EXPENSE (Expenses).
      * @return BudgetCategoryItem - Returns the BudgetCategoryItem object created 
      * for this category.
@@ -143,13 +118,13 @@ public class BudgetCategoriesList {
     public BudgetCategoryItem add(final Account acct) {
         // Prompt the user if a duplicate category is found (same parent and same
         // type) and then exit without adding the category. 
-        if (this.lhm.containsKey(this.getKey(acct.getFullAccountName(), acct.getAccountType())))
+        if (this.lhm.containsKey(acct.getUUID()))
             {
-            // Display a warning message - Duplicate category!
+            // Display a warning message - Duplicate UUID!
             JOptionPane.showMessageDialog( null,
-            "The category "+acct.getFullAccountName()+" of type "+acct.getAccountType().toString()+" is included more than once and this one will be ignored. Although Moneydance allows this, duplicates are confusing at best and may not consistently work even in Moneydance. This category should be renamed.",
-            "Warning (Monthly Budget Report)",
-            JOptionPane.WARNING_MESSAGE);
+            "The UUID "+acct.getUUID()+" has been found more than once and this one will be ignored. Something is seriously wrong here!",
+            "Error (Monthly Budget Bars)",
+            JOptionPane.ERROR_MESSAGE);
             return null;
             }
 
@@ -179,7 +154,7 @@ public class BudgetCategoriesList {
         final BudgetCategoryItem bcItem = new BudgetCategoryItem(acct, acct.getAccountType(), this.tracker.getParent(indentLevel, hasChildren), indentLevel, hasChildren);
         
         // Put the item in the hash map
-        this.lhm.put(this.getKey(fullName, acct.getAccountType()), bcItem);
+        this.lhm.put(acct.getUUID(), bcItem);
 
         // Return the new item to the caller
         return bcItem;
@@ -190,14 +165,13 @@ public class BudgetCategoriesList {
      * This method returns a BudgetCategoryItem for the full account name
      * passed.
      *  
-     * @param fullAcctName - The full account name i.e. Auto:Fuel.
-     * @param type - The type of this category: 
+     * @param UUID - The UUID of the account to get
      * @return BudgetCategoryItem - The BudgetCategoryItem object corresponding
      * to the full account name. A null return value indicates the item does
      * not exist.
      */
-    public BudgetCategoryItem getCategoryItem(final String fullAcctName, final Account.AccountType type) {
-        return this.lhm.get(this.getKey(fullAcctName, type));
+    public BudgetCategoryItem getCategoryItem(final String UUID) {
+        return this.lhm.get(UUID);
     }
      
     

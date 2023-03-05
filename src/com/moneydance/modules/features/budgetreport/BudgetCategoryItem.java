@@ -146,7 +146,7 @@ final class BudgetCategoryItem {
      * 
      * @return boolean - true if the category has children, false otherwise.
      */
-    public boolean getHasChildren() {
+    public boolean hasChildren() {
         return this.hasChildren;
     }
 
