@@ -135,9 +135,19 @@ public class Table extends JTable {
 		if  (this.model.getBudgetCategoryItem(row).hasChildren())
 			{
 			if (row == 0)
-				c.setForeground(new Color(33, 144, 255));	// Income-Expense row - Medium blue
+			{
+				if (this.colors.isDarkTheme())
+            		c.setForeground(new Color(33, 144, 255));	// Income-Expense row - Medium blue
+				else 
+					c.setForeground(this.colors.reportBlueFG.darker());
+				}
 			else
-				c.setForeground(new Color(0, 204, 204));	// Other rollup rows - Dark Cyan
+				{
+				if (this.colors.isDarkTheme())
+					c.setForeground(new Color(0, 204, 204));	// Other rollup rows - Dark Cyan
+				else 
+					c.setForeground(this.colors.reportBlueFG);
+				}
 			}
 
 		// Highlight negative difference values red

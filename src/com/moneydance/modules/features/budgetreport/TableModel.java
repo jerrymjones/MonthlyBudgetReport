@@ -30,17 +30,22 @@
  */ 
 package com.moneydance.modules.features.budgetreport;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 
 import com.infinitekind.moneydance.model.Account;
+import com.infinitekind.moneydance.model.AccountBook;
 import com.infinitekind.moneydance.model.Account.AccountType;
 import com.infinitekind.moneydance.model.AccountUtil;
 import com.infinitekind.moneydance.model.BudgetItem;
 import com.infinitekind.moneydance.model.BudgetItemList;
 import com.infinitekind.moneydance.model.BudgetPeriod;
+import com.infinitekind.moneydance.model.CurrencyType;
+import com.infinitekind.moneydance.model.CurrencyUtil;
 import com.infinitekind.moneydance.model.PeriodType;
 import com.infinitekind.util.DateUtil;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
@@ -61,11 +66,17 @@ public class TableModel extends AbstractTableModel  {
     // The context of the extension
     private final FeatureModuleContext context;
 
+    // The current data file
+    private final AccountBook book;
+
     // Budget item list
     private BudgetItemList budgetItemList;
 
     // Budget Categories List
     private BudgetCategoriesList budgetCategoriesList;
+
+    // The decimal separator character
+    private char separator;
     
     public TableModel(final BudgetReportWindow window, final FeatureModuleContext context) {
         // Save main window for later
@@ -73,6 +84,14 @@ public class TableModel extends AbstractTableModel  {
         
         // Save context for later
         this.context = context;
+
+        // Save the account book for later
+        this.book = context.getCurrentAccountBook();
+
+        // Get the decimal separator for this locale
+        DecimalFormat format = (DecimalFormat) DecimalFormat.getInstance();
+        DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+        this.separator = symbols.getDecimalSeparator();
 
         // Load the category and budget data from Moneydance
         this.LoadData();
@@ -103,7 +122,7 @@ public class TableModel extends AbstractTableModel  {
         this.budgetItemList = budgetList.getBudget(currentReport.getBudgetName()).getItemList();
 
         // Create a new Budget Categories list
-        this.budgetCategoriesList = new BudgetCategoriesList();
+        this.budgetCategoriesList = new BudgetCategoriesList(this.book);
 
         // Create a special category for the Income - Expenses total row
         this.budgetCategoriesList.add(Constants.UUID_OVERALL, "Income-Expenses", Account.AccountType.ROOT, 0);
@@ -299,6 +318,13 @@ public class TableModel extends AbstractTableModel  {
         final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
         if (item != null)
             {
+            // Get the selected currency type
+            CurrencyType toType;
+            if (currentReport.isUseCategoryCurrency())
+                toType = item.getCurrencyType();                    // Category currency
+            else
+                toType = this.book.getCurrencies().getBaseType();   // Base currency
+
             // Category names
             if (column == 0)    // Category name
                 {
@@ -315,34 +341,34 @@ public class TableModel extends AbstractTableModel  {
             
                 // Budget values and totals
                 else if ((column - 1) % 3 == 0)   // Budget
-                    {
+                    {                
                     if ((currentReport.getSubtotalBy() == Constants.SUBTOTAL_NONE) || (column > (((currentReport.getEndMonth() + 1) - currentReport.getStartMonth()) * 3)))
-                        return (Double)(item.getBudgetTotal() / 100.0d);
+                        return (toType.formatFancy(CurrencyUtil.convertValue(item.getBudgetTotal(), item.getCurrencyType(), toType), this.separator));
                     else
-                        return (Double)(item.getBudgetValueForMonth(currentReport.getStartMonth() + ((column - 1) / 3)) / 100.0d);
+                        return (toType.formatFancy(CurrencyUtil.convertValue(item.getBudgetValueForMonth(currentReport.getStartMonth() + ((column - 1) / 3)), item.getCurrencyType(), toType), this.separator));
                     }
                 else if ((column - 1) % 3 == 1)   // Actuals
                     {
                     if ((currentReport.getSubtotalBy() == Constants.SUBTOTAL_NONE) || (column > (((currentReport.getEndMonth() + 1) - currentReport.getStartMonth()) * 3)))
-                        return (Double)(item.getActualTotal() / 100.0d);
+                        return (toType.formatFancy(CurrencyUtil.convertValue(item.getActualTotal(), item.getCurrencyType(), toType), this.separator));
                     else
-                        return (Double)(item.getActualTotalForMonth(currentReport.getStartMonth() + ((column - 1) / 3)) / 100.0d);
+                        return (toType.formatFancy(CurrencyUtil.convertValue(item.getActualTotalForMonth(currentReport.getStartMonth() + ((column - 1) / 3)), item.getCurrencyType(), toType), this.separator));
                     }
                 else if ((column - 1) % 3 == 2)   // Difference
                     {
                     if ((item.getCategoryType() == Account.AccountType.ROOT) || (item.getCategoryType() == Account.AccountType.INCOME))
                         {
                         if ((currentReport.getSubtotalBy() == Constants.SUBTOTAL_NONE) || (column > (((currentReport.getEndMonth() + 1) - currentReport.getStartMonth()) * 3)))    
-                            return (Double)((item.getActualTotal() - item.getBudgetTotal()) / 100.0d);
+                            return (toType.formatFancy(CurrencyUtil.convertValue(item.getActualTotal() - item.getBudgetTotal(), item.getCurrencyType(), toType), this.separator));
                         else
-                            return (Double)((item.getActualTotalForMonth(currentReport.getStartMonth() + ((column - 1) / 3)) - item.getBudgetValueForMonth(currentReport.getStartMonth()  + ((column - 1) / 3))) / 100.0d);
-                        }
+                            return (toType.formatFancy(CurrencyUtil.convertValue(item.getActualTotalForMonth(currentReport.getStartMonth() + ((column - 1) / 3)) - item.getBudgetValueForMonth(currentReport.getStartMonth()  + ((column - 1) / 3)), item.getCurrencyType(), toType), this.separator));
+                       }
                     else
                         {
                         if ((currentReport.getSubtotalBy() == Constants.SUBTOTAL_NONE) || (column > (((currentReport.getEndMonth() + 1) - currentReport.getStartMonth()) * 3)))
-                            return (Double)((item.getBudgetTotal() - item.getActualTotal()) / 100.0d);
+                            return (toType.formatFancy(CurrencyUtil.convertValue(item.getBudgetTotal() - item.getActualTotal(), item.getCurrencyType(), toType), this.separator));    
                         else
-                            return (Double)((item.getBudgetValueForMonth(currentReport.getStartMonth() + ((column - 1) / 3)) - item.getActualTotalForMonth(currentReport.getStartMonth()  + ((column - 1) / 3))) / 100.0d);
+                            return (toType.formatFancy(CurrencyUtil.convertValue(item.getBudgetValueForMonth(currentReport.getStartMonth() + ((column - 1) / 3)) - item.getActualTotalForMonth(currentReport.getStartMonth()  + ((column - 1) / 3)), item.getCurrencyType(), toType), this.separator));
                         }
                     }
                 else

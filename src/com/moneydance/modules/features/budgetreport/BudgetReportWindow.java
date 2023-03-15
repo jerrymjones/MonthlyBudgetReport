@@ -63,8 +63,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -101,7 +102,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import com.infinitekind.moneydance.model.Account;
+import com.infinitekind.moneydance.model.AccountBook;
 import com.infinitekind.moneydance.model.Budget;
+import com.infinitekind.moneydance.model.CurrencyType;
+import com.infinitekind.moneydance.model.CurrencyUtil;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
 import com.moneydance.apps.md.view.gui.MDColors;
 import com.moneydance.awt.AwtUtil;
@@ -131,6 +135,9 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
 
   // Extension context
   private FeatureModuleContext context;
+
+    // The current data file
+    private final AccountBook book;
 
   // The budget selection control
   private JComboBox<String> budgetSelector;
@@ -187,6 +194,9 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
 
     // Get FeatureModule context
     this.context = extension.getUnprotectedContext();
+
+    // Save the account book for later
+    this.book = this.context.getCurrentAccountBook();
 
     // Get the colors for the current Moneydance theme
     this.colors = com.moneydance.apps.md.view.gui.MDColors.getSingleton();
@@ -316,7 +326,10 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
 
     // Add a clickable text link to request help
     this.helpLink = new JLabel("User Guide", JLabel.LEFT);
-    this.helpLink.setForeground(new Color(33, 144, 255));
+    if (this.colors.isDarkTheme())
+      this.helpLink.setForeground(new Color(33, 144, 255));	// Medium blue
+    else 
+      this.helpLink.setForeground(this.colors.reportBlueFG);
 
     // Set the preferred size of this item so that the center panel actually is
     // centered on the frame.
@@ -501,7 +514,7 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
       if (name == null)
         {
         // Create a default report
-        this.currentReport = new Report(Constants.UNSAVED_REPORT, "Budget", Constants.PERIOD_AUTOMATIC, thisYear, 1, thisMonth, Constants.SUBTOTAL_NONE, true);
+        this.currentReport = new Report(Constants.UNSAVED_REPORT, "Budget", Constants.PERIOD_AUTOMATIC, thisYear, 1, thisMonth, Constants.SUBTOTAL_NONE, true, false);
 
         // Allow the user to edit the default report
         this.doEdit(false);
@@ -705,7 +718,9 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
         else
           {
           // Set the cell renderer for the numeric cells
-          colSelect.setCellRenderer(new CurrencyTableCellRenderer());
+          DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+          cellRenderer.setHorizontalAlignment(JLabel.RIGHT);
+          colSelect.setCellRenderer(cellRenderer);
 
           // If this is a table subtotaled by month then set the minimum width of the column
           colSelect.setPreferredWidth(Constants.VALUE_WIDTH + colAdj);
@@ -786,7 +801,6 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
     else
       dialog.setTitle("Create Default Budget Report");
     dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
-    dialog.setMaximumSize(new Dimension(400, 480));
     dialog.setResizable(false);
     dialog.setLayout(new GridBagLayout());
     
@@ -1017,13 +1031,21 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
     final JCheckBox rollup = new JCheckBox("Subtotal rollups");
     rollup.setSelected(this.currentReport.isSubtotalParents());
     rollup.setToolTipText("Select to enable rollup totals");
-    dialog.add(rollup,GridC.getc(1, 6).insets(5, 0, 5, 0).fillx());
+    dialog.add(rollup,GridC.getc(1, 6).insets(5, 0, 5, 15).fillx());
+
+    /*
+    ** Use category currency check box
+    */
+    final JCheckBox currency = new JCheckBox("Use category currency");
+    currency.setSelected(this.currentReport.isUseCategoryCurrency());
+    currency.setToolTipText("Select to display categories in their own currency");
+    dialog.add(currency,GridC.getc(1, 7).insets(5, 0, 5, 15).fillx());
 
     /*
     * Add the Bottom Panel so we can center the action Buttons
     */  
     final JPanel bottomPanel = new JPanel(new GridBagLayout());
-    dialog.add(bottomPanel,GridC.getc(0, 7).colspan(2));
+    dialog.add(bottomPanel,GridC.getc(0, 8).colspan(2));
 
       /*
       ** OK Button
@@ -1044,6 +1066,7 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
             BudgetReportWindow.this.currentReport.setEndMonth(BudgetReportWindow.this.endSelector.getSelectedIndex() + 1);
             BudgetReportWindow.this.currentReport.setSubtotalBy(subtotalSelector.getSelectedIndex());
             BudgetReportWindow.this.currentReport.setSubtotalParents(rollup.isSelected());
+            BudgetReportWindow.this.currentReport.setCategoryCurrency(currency.isSelected());
 
             // Update the report with the changes
             if (BudgetReportWindow.this.tableModel != null)
@@ -1154,7 +1177,9 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
         colSelect.setMinWidth(Constants.PRINT_VALUE_WIDTH); 
 
         // Set the cell renderer for the numeric cells
-        colSelect.setCellRenderer(new CurrencyTableCellRenderer());
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+        cellRenderer.setHorizontalAlignment(JLabel.RIGHT);
+        colSelect.setCellRenderer(cellRenderer);
         }
       }
 
@@ -1674,6 +1699,11 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
       final int numRows = this.table.getRowCount(); 
       final int numCols = this.table.getColumnCount(); 
 
+      // Get the decimal separator for this locale
+      DecimalFormat format = (DecimalFormat) DecimalFormat.getInstance();
+      DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+      char separator = symbols.getDecimalSeparator();
+
       // Head of file
       fileWriter.append("<!DOCTYPE HTML>\n");
       fileWriter.append("<html>\n");
@@ -1802,7 +1832,16 @@ public class BudgetReportWindow extends JFrame implements ComponentListener
           else
             {
             if (this.table.getValueAt(row, column) instanceof Number)
-              fileWriter.append(NumberFormat.getCurrencyInstance().format((double)this.table.getValueAt(row, column))+"</td>\n");
+              {
+              // Get the selected currency type
+              CurrencyType toType;
+              if (this.currentReport.isUseCategoryCurrency())
+                  toType = budgetCategoriesList.getCategoryItemByIndex(row).getCurrencyType();  // Category currency
+              else
+                  toType = this.book.getCurrencies().getBaseType();                             // Base currency
+
+              fileWriter.append(toType.formatFancy(CurrencyUtil.convertValue((long)this.table.getValueAt(row, column), budgetCategoriesList.getCategoryItemByIndex(row).getCurrencyType(), toType), separator));
+              }
             else
               fileWriter.append("<td></td>\n");
             }

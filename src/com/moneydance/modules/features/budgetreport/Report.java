@@ -52,6 +52,7 @@ public class Report implements Serializable {
     private int     endMonth;
     private int     subtotalBy;
     private boolean subtotalParents;
+    private boolean categoryCurrency;
 
     /**
      * Create a new report.
@@ -64,8 +65,9 @@ public class Report implements Serializable {
      * @param endMonth - The ending month, if manually entered.
      * @param subtotalBy - The subtotal by selection.
      * @param subtotalParents - True if parent categories should be totaled and displayed.
+     * @param categoryCurrency - True the categories should be displayed in their currency, false for base currency.
      */
-    public Report(final String reportName, final String budgetName, final int period, final int year, final int startMonth, final int endMonth, final int subtotalBy, final boolean subtotalParents) {
+    public Report(final String reportName, final String budgetName, final int period, final int year, final int startMonth, final int endMonth, final int subtotalBy, final boolean subtotalParents, final boolean categoryCurrency) {
         this.reportName = reportName;
         this.budgetName = budgetName;
         this.period = period;
@@ -74,6 +76,7 @@ public class Report implements Serializable {
         this.endMonth = endMonth;
         this.subtotalBy = subtotalBy;
         this.subtotalParents = subtotalParents;
+        this.categoryCurrency = categoryCurrency;
         this.memorized = false;
     }
 
@@ -84,11 +87,11 @@ public class Report implements Serializable {
     public String toString() {
         return "Report [budgetName=" + this.budgetName + ", period=" + this.period + ", year=" + this.year + ", startMonth="
                 + this.startMonth + ", endMonth=" + this.endMonth + ", subtotalBy=" + this.subtotalBy + ", subtotalParents="
-                + this.subtotalParents + "]";
+                + this.subtotalParents + ", categoryCurrency " + this.categoryCurrency + "]";
     }
 
     /**
-     * @return the serialversionuid
+     * @return the serialversionuid 
      */
     public static long getSerialversionuid() {
         return Report.serialVersionUID;
@@ -211,7 +214,7 @@ public class Report implements Serializable {
     }
 
     /**
-     * @return the subtotalParents
+     * @return the subtotalParents flag
      */
     public boolean isSubtotalParents() {
         return this.subtotalParents;
@@ -222,5 +225,19 @@ public class Report implements Serializable {
      */
     public void setSubtotalParents(final boolean subtotalParents) {
         this.subtotalParents = subtotalParents;
+    }
+        
+    /**
+     * @return the isUseCategoryCurrency flag
+     */
+    public boolean isUseCategoryCurrency() {
+        return this.categoryCurrency;
+    }
+
+    /**
+     * @param subtotalParents the subtotalParents to set
+     */
+    public void setCategoryCurrency(final boolean categoryCurrency) {
+        this.categoryCurrency = categoryCurrency;
     }
 }
