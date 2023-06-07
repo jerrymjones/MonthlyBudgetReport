@@ -154,9 +154,9 @@ public class Table extends JTable {
 		if ((column !=0) && (column % 3 == 0))
 			{
 			Object value = this.getValueAt(row, column);
-			if (value instanceof Number)
+			if (value instanceof String)
 				{
-				if (((Double)value < 0))
+				if (((String)value).contains("-"))
 					c.setForeground(Color.RED);
 				}
 			}
