@@ -293,7 +293,7 @@ public class TableModel extends AbstractTableModel  {
                     return this.columnNames[1 + ((column - 1) % 3)]+": "+Constants.shortMonths[12];
                 // Otherwise short month name
                 else
-                    return this.columnNames[1 + ((column - 1) % 3)]+": "+Constants.shortMonths[(column - 1) / 3];
+                    return this.columnNames[1 + ((column - 1) % 3)]+": "+Constants.shortMonths[currentReport.getStartMonth() - 1 + ((column - 1) / 3)];
                 }
             else
                 return this.columnNames[1 + ((column - 1) % 3)];
